@@ -18,7 +18,6 @@ version = '0.2.4-alpha-internal'
 group = 'br.veilchapter'
 archivesBaseName = 'VeilChapter1122'
 sourceCompatibility = targetCompatibility = '1.8'
-java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 compileJava.options.encoding = 'UTF-8'
 
 minecraft {
