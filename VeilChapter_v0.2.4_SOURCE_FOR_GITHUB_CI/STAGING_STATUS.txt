@@ -1,0 +1,23 @@
+CANDIDATO INTERNO: Veil Chapter Forge 1.12.2 (nao publicado / nao instalavel ate build real).
+CONTEXTO: correcoes sobre a base v0.2.3, nao refazer gameplay.
+CONFIRMADO NESTE AMBIENTE:
+ - 237 assertions Java puro; bash scripts passam syntax check.
+ - 19 verificacoes estaticas de recursos, rede, Gradle e consistencia.
+ - watcher.png 64x64 valido, psst.ogg OGG valido (~1.15s).
+ - Algoritmo da arvore aproximadamente 70.167 colocacoes em 600 ticks; media ~117 por tick, limite no codigo 220. Ainda nao comprovado TPS/FPS no jogo.
+ - Registo pacote cliente/servidor corrigido com DayStateHandler e CommonProxy.
+ - StoryData centralizado no Overworld para evitar progresso divergente.
+ - Progressao da historia protegida contra /time regressivo.
+ - Interacoes com dimensao ID 713 desativadas se ID ja pertence a outro mod (inclusive comando debug).
+ - Blocos temporarios nao sao rastreados depois que o jogador os recoloca.
+ - Conter fogo nao apaga mais areas de fogo que podem pertencer ao jogador/terceiros (ainda requer outro sistema seguro para conter propagacao; fogo off por padrao).
+ - Gradle ForgeGradle 5.1.74, Gradle 7.3.3, Java 8 com CI preparado; bootstrap MDK com hash oficial.
+ - Correcao do teste offline para compilador JDK8 (em vez de --release 8).
+ - Geracao gradual de ate um chunk por tick isoladamente na dimensao da arvore, para evitar estol em render distance baixa.
+NÃO VERIFICADO:
+ - Dependencias Forge nao acessiveis ao contêiner (curl retorna status 000).
+ - GitHub app instalada sem repositorio autorizado (list_installations vazio); CI NAO EXECUTADA.
+ - Build real/reobfuscacao do mod, inicializacao Minecraft, visual, FPS/TPS, saves reais e integração Dynamic Lights.
+ - Escuridão global real e inteligencia de janelas ainda parciais; fogo e stasis sao experimentais OFF.
+REGRA: nao rotular esta staging como release pronta nem entregar JAR inventado.
+PROXIMA ETAPA: conceder acesso ao GitHub para um repositorio VeilChapter1122 privado, push da staging e executar GitHub Actions; corrigir logs até build verde. Depois playtest separado antes de declarar gameplay pronto.
