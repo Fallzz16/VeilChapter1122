@@ -1,0 +1,80 @@
+name: Forge 1.12.2 - Build and QA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'tools/**'
+      - '.github/workflows/forge-1122-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 55
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install JDK 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '8'
+      - name: Environment details
+        run: |
+          java -version
+          javac -version
+      - name: Check source tree
+        run: |
+          test -f build.gradle
+          test -f src/main/java/br/veilchapter/VeilMod.java
+          test -f tools/preparar_mdk.sh
+          test -f tools/inspecao_estatica.py
+          test -f tools/testar_logica_offline.sh
+      - name: Static preflight
+        run: python3 tools/inspecao_estatica.py | tee static_qa.log
+      - name: Offline logic tests
+        run: bash tools/testar_logica_offline.sh | tee offline_qa.log
+      - name: Prepare Gradle wrapper
+        run: bash tools/preparar_mdk.sh
+      - name: Compile and reobfuscate mod
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon --stacktrace clean build 2>&1 | tee build_log.txt
+      - name: Inspect generated JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          jars=(build/libs/*.jar)
+          [[ -f "${jars[0]}" ]] || { echo 'No JAR generated'; exit 1; }
+          jar tf "${jars[0]}" | tee jar_contents.txt
+          grep -qx 'br/veilchapter/VeilMod.class' jar_contents.txt
+          grep -qx 'mcmod.info' jar_contents.txt
+          grep -qx 'assets/veilchapter/textures/entity/watcher.png' jar_contents.txt
+          grep -qx 'assets/veilchapter/sounds/psst.ogg' jar_contents.txt
+      - name: Upload compiled JAR (not gameplay validated)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: veilchapter-1122-COMPILED-NOT-GAMEPLAY-TESTED
+          path: build/libs/*.jar
+          if-no-files-found: error
+      - name: Preserve diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: veilchapter-build-diagnostics
+          path: |
+            build_log.txt
+            static_qa.log
+            offline_qa.log
+            jar_contents.txt
+          if-no-files-found: ignore
