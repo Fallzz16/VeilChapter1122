@@ -4,6 +4,7 @@ import br.veilchapter.VeilMod;
 import br.veilchapter.config.VeilConfig;
 import br.veilchapter.core.TreeMath;
 import br.veilchapter.core.TreeRitualPacing;
+import br.veilchapter.core.TreeCinematicTimeline;
 import br.veilchapter.entity.EntityWatcher;
 import br.veilchapter.sound.VeilSounds;
 import br.veilchapter.sound.TreeRitualAudio;
@@ -37,10 +38,11 @@ public final class TreeScene {
     public static final BlockPos CHEST = new BlockPos(0,5,0);
     private static List<Placement> plan;
     private static int[] planCounts;
-    // Five COMPLETE spoken passages, mastered as mono OGG and separated by silence.
-    // Timeline fits into the existing 150-second Tree Ritual without delaying the chest.
-    private static final int[] VOICE_SECONDS = {12, 34, 59, 95, 137};
-    private static final int[] VOICE_DURATION_TICKS = {92, 124, 280, 172, 98};
+    // Tree is complete before teleport. The cinematic is an ~41s dialogue.
+    public static final double VIEW_X=.5, VIEW_Y=4, VIEW_Z=45.5;
+    public static final float VIEW_YAW=180F, VIEW_PITCH=-14F;
+    private static final BlockPos SPEAKER=new BlockPos(2,4,37);
+    private static final int GATE_Z=3;
     private static final String[] SUBTITLES = {
         "Até que enfim... eu estava esperando por você.",
         "Tudo parece estranho... mas eu confio em você para salvá-lo.",
@@ -75,181 +77,148 @@ public final class TreeScene {
         d.markDirty();
         return true;
     }
+    /** Build at most 128 blocks and one new chunk per tick BEFORE teleport. */
     public void enter(EntityPlayerMP player,StoryData d) {
-        if(player.dimension!=0 || !d.treeActive) return;
+        if(player.dimension!=0 || !d.treeActive)return;
         try {
-            Entity changed=player.changeDimension(VeilMod.CLEARING_DIM,new FixedPoint(0.5,4, 45.5, 180F, 0F));
-            if (changed == null || changed.dimension!=VeilMod.CLEARING_DIM) {
-                VeilMod.LOG.error("Transicao para clearing nao confirmada; mantendo gatilho pendente.");
-                d.treeActive=false;d.treeTriggerConsumed=false;d.markDirty();
+            if(net.minecraftforge.common.DimensionManager.getWorld(VeilMod.CLEARING_DIM)==null)
+                net.minecraftforge.common.DimensionManager.initDimension(VeilMod.CLEARING_DIM);
+            WorldServer w=player.getServer().getWorld(VeilMod.CLEARING_DIM);
+            if(w==null)return;
+            List<Placement> shape=plan();
+            int placed=0,loaded=0;
+            while(d.treeCursor<shape.size() && placed<TreeCinematicTimeline.PREBUILD_BUDGET){
+                Placement op=shape.get(d.treeCursor);
+                if(!w.isBlockLoaded(op.pos,false)){
+                    if(loaded>=1)break;
+                    w.getChunkProvider().provideChunk(op.pos.getX()>>4,op.pos.getZ()>>4);
+                    loaded++;
+                    if(!w.isBlockLoaded(op.pos,false))break;
+                }
+                if(!op.pos.equals(CHEST)){
+                    IBlockState old=w.getBlockState(op.pos);
+                    if(old.getBlock()==Blocks.AIR || old.getBlock()==Blocks.TALLGRASS)
+                        w.setBlockState(op.pos,op.state,2);
+                }
+                d.treeCursor++;
+                placed++;
             }
-        } catch (Exception exc) {
-            VeilMod.LOG.error("Falha na transicao da arvore. Jogador preservado?",exc);
-            d.treeActive=false;d.treeTriggerConsumed=false;d.markDirty();
+            if(placed>0)d.markDirty();
+            if(d.treeCursor<shape.size())return;
+            sealGate(w);
+            prepareChest(w);
+            Entity changed=player.changeDimension(VeilMod.CLEARING_DIM,
+                    new FixedPoint(VIEW_X,VIEW_Y,VIEW_Z,VIEW_YAW,VIEW_PITCH));
+            if(changed==null || changed.dimension!=VeilMod.CLEARING_DIM){
+                VeilMod.LOG.error("Tree scene teleport failed; checkpoint retained.");
+                d.treeActive=false;d.treeTriggerConsumed=false;
+            }else{
+                d.treeStage=1;d.treeStarted=0;d.treeWatcherFlags=0;
+                VeilMod.NETWORK.sendTo(new br.veilchapter.network.CinematicStatePacket(true),(EntityPlayerMP)changed);
+                VeilMod.LOG.info("TREE_PREBUILT_SEALED: {} placements",shape.size());
+            }
+            d.markDirty();
+        }catch(Exception ex){
+            VeilMod.LOG.error("Tree scene preload failed; will retry safely.",ex);
         }
     }
-    /** The player remains in control; the 150-second ritual limits block and chunk work. */
-    public void tick(EntityPlayerMP p,StoryData d) {
+    public void tick(EntityPlayerMP p,StoryData d){
         if(p.dimension!=VeilMod.CLEARING_DIM || !d.treeActive)return;
         WorldServer w=(WorldServer)p.world;
-        if(d.treeStarted==0){d.treeStarted=w.getTotalWorldTime();d.markDirty();}
         p.getFoodStats().setFoodLevel(d.storedFood);
         p.getFoodStats().setFoodSaturationLevel(d.storedSaturation);
         if(d.returnCommitted){finishReturn(p,d);return;}
-        long elapsed=Math.max(0,w.getTotalWorldTime()-d.treeStarted);
-
-        // Prefetch at most one chunk per ten ticks while the clearing is still quiet.
-        // The closer observation point also keeps most of the crown within normal view distance.
-        if(elapsed<400 && elapsed%10==0){
-            int idx=(int)(elapsed/10);
-            if(idx<9){
-                int cx=(idx%3)-1, cz=(idx/3)-1;
-                w.getChunkProvider().provideChunk(cx,cz);
-            }
-        }
-
-        ritualVoices(p,w,elapsed,d);
-        ritualWoodSounds(w,elapsed);
-        if (elapsed%20==0)clearExpiredWatchers(w);
-
-        // Keep the tree in view from the ground. Movement is never locked.
-        if(p.posX*p.posX+p.posZ*p.posZ>180*180){
-            p.connection.setPlayerLocation(-p.posX*.20,4,-p.posZ*.20,p.rotationYaw,p.rotationPitch);
-        }
-
-        List<Placement> shape=plan();
-        int target=Math.min(shape.size(),TreeRitualPacing.target(elapsed,planCounts));
-        int built=0, generatedChunks=0;
-        while(d.treeCursor<target && built<TreeRitualPacing.MAX_PLACEMENTS_PER_TICK) {
-            Placement op=shape.get(d.treeCursor);
-            if(!w.isBlockLoaded(op.pos,false)){
-                if(generatedChunks>=1)break;
-                generatedChunks++;
-                w.getChunkProvider().provideChunk(op.pos.getX()>>4,op.pos.getZ()>>4);
-                if(!w.isBlockLoaded(op.pos,false))break;
-            }
-            d.treeCursor++;
-            if(!op.pos.equals(CHEST) &&
-                    !p.getEntityBoundingBox().intersects(new net.minecraft.util.math.AxisAlignedBB(op.pos))){
-                IBlockState old=w.getBlockState(op.pos);
-                if(old.getBlock()==Blocks.AIR || old.getBlock()==Blocks.TALLGRASS)
-                    w.setBlockState(op.pos,op.state,2);
-            }
-            built++;
-        }
-        if(built>0 && w.getTotalWorldTime()%20==0)d.markDirty();
-
-        // Never reveal the chest until *every* placed block has finished, even on a slow PC.
-        if(d.treeCursor>=shape.size() && elapsed>=TreeRitualPacing.TOTAL_TICKS) {
-            if(!w.isBlockLoaded(CHEST,false))w.getChunkProvider().provideChunk(0,0);
-            if(!p.getEntityBoundingBox().intersects(new net.minecraft.util.math.AxisAlignedBB(CHEST))){
-                if(w.getBlockState(CHEST).getBlock()!=Blocks.CHEST)
-                    w.setBlockState(CHEST,Blocks.CHEST.getDefaultState(),3);
-                TileEntity tile=w.getTileEntity(CHEST);
-                if(tile instanceof TileEntityChest){
-                    TileEntityChest chest=(TileEntityChest)tile;
-                    if(chest.getStackInSlot(0).isEmpty())chest.setInventorySlotContents(0,book());
-                }
-                if(d.treeStage!=2){d.treeStage=2;d.markDirty();}
-            }
-        }
         if(d.treeStage==2){
-            if(elapsed%36==0 && elapsed<TreeRitualPacing.TOTAL_TICKS+240)
-                p.sendStatusMessage(new TextComponentString("Agora, entre."),true);
+            if(w.getTotalWorldTime()%80==0)p.sendStatusMessage(new TextComponentString("Agora, entre."),true);
+            return;
+        }
+        if(d.treeStage!=1)return;
+        if(d.treeStarted==0){d.treeStarted=w.getTotalWorldTime();d.markDirty();}
+        long elapsed=Math.max(0,w.getTotalWorldTime()-d.treeStarted);
+        freezePlayer(p);
+        if(elapsed%20==0){
+            ensureWatcher(w);
+            VeilMod.NETWORK.sendTo(new br.veilchapter.network.CinematicStatePacket(true),p);
+        }
+        playSpeeches(p,w,elapsed,d);
+        ritualWoodSounds(w,elapsed);
+        if(TreeCinematicTimeline.mayOpen(elapsed,d.treeWatcherFlags)){
+            unsealGate(w);
+            for(EntityWatcher watcher:w.getEntities(EntityWatcher.class,
+                    e->e.getEntityData().getBoolean("veilRitual")))watcher.setDead();
+            d.treeStage=2;d.markDirty();
+            VeilMod.NETWORK.sendTo(new br.veilchapter.network.CinematicStatePacket(false),p);
+            p.sendStatusMessage(new TextComponentString("Agora, entre."),true);
+            VeilMod.LOG.info("TREE_GATE_OPEN_AFTER_ALL_FIVE_VOICES: {}",elapsed);
         }
     }
-
-    /** Nine sparse, server-authoritative spatial creaks. No bird sounds or music. */
-    private void ritualWoodSounds(WorldServer world,long elapsed) {
-        final int[] seconds={22,29,43,51,78,87,111,124,131};
-        final int[] x={-5,6,-9,7,13,-11,9,-8,3};
-        final int[] z={10,8,7,-4,2,-2,0,5,-7};
-        final int[] level={6,7,12,15,18,19,23,24,23};
+    private static void freezePlayer(EntityPlayerMP p){
+        p.motionX=p.motionY=p.motionZ=0;
+        p.fallDistance=0;
+        double dx=p.posX-VIEW_X,dy=p.posY-VIEW_Y,dz=p.posZ-VIEW_Z;
+        if(dx*dx+dy*dy+dz*dz>.01 ||
+                Math.abs(net.minecraft.util.math.MathHelper.wrapDegrees(p.rotationYaw-VIEW_YAW))>1 ||
+                Math.abs(p.rotationPitch-VIEW_PITCH)>1)
+            p.connection.setPlayerLocation(VIEW_X,VIEW_Y,VIEW_Z,VIEW_YAW,VIEW_PITCH);
+    }
+    private static void sealGate(WorldServer w){
+        for(int y=5;y<=8;y++)for(int x=-2;x<=2;x++)
+            w.setBlockState(new BlockPos(x,y,GATE_Z),Blocks.LOG.getDefaultState(),3);
+    }
+    private static void unsealGate(WorldServer w){
+        for(int y=5;y<=8;y++)for(int x=-2;x<=2;x++){
+            BlockPos at=new BlockPos(x,y,GATE_Z);
+            if(w.getBlockState(at).getBlock()==Blocks.LOG)w.setBlockToAir(at);
+        }
+    }
+    private static void prepareChest(WorldServer w){
+        if(w.getBlockState(CHEST).getBlock()!=Blocks.CHEST)
+            w.setBlockState(CHEST,Blocks.CHEST.getDefaultState(),3);
+        TileEntity tile=w.getTileEntity(CHEST);
+        if(tile instanceof TileEntityChest){
+            TileEntityChest chest=(TileEntityChest)tile;
+            if(chest.getStackInSlot(0).isEmpty())chest.setInventorySlotContents(0,book());
+        }
+    }
+    /** Reduced spatial creaks for the shorter continuous dialogue scene. */
+    private void ritualWoodSounds(WorldServer w,long elapsed){
+        int[] seconds={5,11,18,26,35};
+        int[] xs={-5,6,-9,7,3},zs={10,8,7,-4,-7},ys={6,7,12,15,23};
         for(int i=0;i<seconds.length;i++){
             if(elapsed!=seconds[i]*20L)continue;
-            BlockPos speaker=new BlockPos(x[i],4+level[i],z[i]);
-            if(!world.isBlockLoaded(speaker,false))return;
-            world.playSound(null,speaker,VeilSounds.TREE_CREAKS[i%6],
-                SoundCategory.BLOCKS,1.35F,0.94F+(i%3)*.045F);
+            BlockPos pos=new BlockPos(xs[i],4+ys[i],zs[i]);
+            if(w.isBlockLoaded(pos,false))w.playSound(null,pos,VeilSounds.TREE_CREAKS[i%6],
+                    SoundCategory.BLOCKS,.55F,.96F+(i%3)*.025F);
             return;
         }
     }
-
-    private void ritualVoices(EntityPlayerMP p,WorldServer w,long elapsed,StoryData d) {
-        if(d.treeStage==2)return; // Completed scene must not replay a spoken cue.
-        for(int i=0;i<VOICE_SECONDS.length;i++){
-            int mask=1<<i;
-            if((d.treeWatcherFlags & mask)!=0)continue;
-            long start=VOICE_SECONDS[i]*20L;
+    private static void ensureWatcher(WorldServer w){
+        if(!w.getEntities(EntityWatcher.class,
+                e->e.getEntityData().getBoolean("veilRitual")).isEmpty())return;
+        if(!w.isBlockLoaded(SPEAKER,false)||!w.isAirBlock(SPEAKER)||!w.isAirBlock(SPEAKER.up()))return;
+        EntityWatcher watcher=new EntityWatcher(w);
+        watcher.setLocationAndAngles(SPEAKER.getX()+.5,SPEAKER.getY(),SPEAKER.getZ()+.5,0,0);
+        watcher.getEntityData().setBoolean("veilRitual",true);
+        watcher.getEntityData().setLong("veilRitualUntil",Long.MAX_VALUE);
+        if(!w.spawnEntity(watcher))VeilMod.LOG.warn("Cinematic Watcher failed to spawn.");
+    }
+    private void playSpeeches(EntityPlayerMP player,WorldServer w,long elapsed,StoryData d){
+        for(int cue=0;cue<5;cue++){
+            int flag=1<<cue;
+            if((d.treeWatcherFlags&flag)!=0)continue;
+            int start=TreeCinematicTimeline.start(cue);
             if(elapsed<start)break;
-            // If a save was resumed far beyond an earlier cue, skip rather than play
-            // several lines simultaneously and spoil the end of the ceremony.
-            if(elapsed>start+220){
-                d.treeWatcherFlags|=mask;
-                d.markDirty();
-                continue;
+            if(elapsed>start+2){
+                // Restart coherently instead of speaking several clips at once after reload.
+                d.treeStarted=w.getTotalWorldTime();d.treeWatcherFlags=0;d.markDirty();
+                return;
             }
-            if(spawnRitualWatcher(w,p,i,VOICE_DURATION_TICKS[i]+12)) {
-                d.treeWatcherFlags|=mask;
-                d.markDirty();
-                p.sendStatusMessage(new TextComponentString(SUBTITLES[i]),true);
-            }
-            break; // At most one cue and one Watcher per tick.
-        }
-    }
-
-    /** A visible but harmless speaker close to the player's current field of view.
-        No chunk loading or player camera/position manipulation is needed. */
-    private boolean spawnRitualWatcher(WorldServer w,EntityPlayerMP p,int cue,int life) {
-        double facingX=p.getLookVec().x, facingZ=p.getLookVec().z;
-        double facingLength=Math.sqrt(facingX*facingX+facingZ*facingZ);
-        if(facingLength<0.1){
-            facingX=-Math.sin(Math.toRadians(p.rotationYaw));
-            facingZ=Math.cos(Math.toRadians(p.rotationYaw));
-            facingLength=1.0;
-        }
-        facingX/=facingLength;facingZ/=facingLength;
-        // Slight off-center approaches alternate sides. The scene can still be
-        // observed with a free camera; nothing forces the player's attention.
-        int sign=(cue%2==0)?1:-1;
-        double distance=7.0+(cue%3)*1.5;
-        double centerX=p.posX+facingX*distance + sign*(-facingZ)*2.5;
-        double centerZ=p.posZ+facingZ*distance + sign*(facingX)*2.5;
-        for(int trial=0;trial<24;trial++){
-            int dx=(trial%5)-2;
-            int dz=(trial/5)-2;
-            BlockPos probe=new BlockPos(Math.floor(centerX)+dx,4,Math.floor(centerZ)+dz);
-            if(!w.isBlockLoaded(probe,false))continue;
-            // DO NOT use World.getHeight() here: once the gigantic crown exists,
-            // that heightmap points to LEAVES ~100 blocks above the player's view.
-            BlockPos at=null;
-            for(int floorY=4;floorY<=9;floorY++){
-                BlockPos candidate=new BlockPos(probe.getX(),floorY,probe.getZ());
-                if(w.isAirBlock(candidate) && w.isAirBlock(candidate.up()) &&
-                   !w.isAirBlock(candidate.down())){
-                    at=candidate;break;
-                }
-            }
-            if(at==null)continue;
-            if(p.getDistanceSq(at.getX()+.5,at.getY(),at.getZ()+.5)<16)continue;
-            EntityWatcher watcher=new EntityWatcher(w);
-            watcher.setLocationAndAngles(at.getX()+.5,at.getY(),at.getZ()+.5,
-                    p.rotationYaw+180F,0F);
-            watcher.getEntityData().setBoolean("veilRitual",true);
-            watcher.getEntityData().setLong("veilRitualUntil",w.getTotalWorldTime()+life);
-            if(!w.spawnEntity(watcher))continue;
-            // The sound has a REAL 3D point and a low-cost environment-dependent variant.
-            TreeRitualAudio.Room acoustic=TreeRitualAudio.play(w,p,
-                    new net.minecraft.util.math.Vec3d(watcher.posX,watcher.posY+1.25,watcher.posZ),cue);
-            VeilMod.LOG.debug("Watcher Tree Ritual voice {} at {}: {}",cue+1,at,acoustic);
-            return true;
-        }
-        return false;
-    }
-    private static void clearExpiredWatchers(WorldServer w){
-        for(EntityWatcher watcher:w.getEntities(EntityWatcher.class,e->e.getEntityData().getBoolean("veilRitual"))){
-            if(w.getTotalWorldTime()>=watcher.getEntityData().getLong("veilRitualUntil"))
-                watcher.setDead();
+            ensureWatcher(w);
+            TreeRitualAudio.play(w,player,new net.minecraft.util.math.Vec3d(
+                    SPEAKER.getX()+.5,SPEAKER.getY()+1.35,SPEAKER.getZ()+.5),cue);
+            d.treeWatcherFlags|=flag;d.markDirty();
+            player.sendStatusMessage(new TextComponentString(SUBTITLES[cue]),true);
+            break;
         }
     }
     public void openChest(EntityPlayerMP p,BlockPos pos,StoryData d) {
@@ -482,6 +451,8 @@ public final class TreeScene {
     public static void verifyPlanForCI(){
         List<Placement> operations=plan();
         int[] phaseTicks={500,800,800,500};
+        if(TreeCinematicTimeline.start(0)!=40 || TreeCinematicTimeline.start(4)<=TreeCinematicTimeline.start(3))
+            throw new IllegalStateException("Invalid Watcher cinematic timing");
         if(operations.size()<1100 || operations.size()>14000)
             throw new IllegalStateException("Unreasonable small-tree size: "+operations.size());
         Set<BlockPos> unique=new HashSet<>();
@@ -509,6 +480,8 @@ public final class TreeScene {
         }
         if(TreeRitualPacing.target(TreeRitualPacing.TOTAL_TICKS,planCounts)!=operations.size())
             throw new IllegalStateException("Tree cannot finish within schedule");
+        VeilMod.LOG.info("TREE_CINEMATIC_PLAN_OK: gate=sealed, totalVoiceTicks={}, prebuild={}",
+                TreeCinematicTimeline.END_TICK,TreeCinematicTimeline.PREBUILD_BUDGET);
         VeilMod.LOG.info("TREE_RITUAL_PLAN_OK: treeHeight<=30, leaves={}, wood={}, stages=[{},{},{},{}], total={}, budget={}",
                 leavesCount,woodCount,planCounts[0],planCounts[1],planCounts[2],
                 planCounts[3],operations.size(),TreeRitualPacing.MAX_PLACEMENTS_PER_TICK);
