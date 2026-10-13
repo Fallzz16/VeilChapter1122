@@ -16,6 +16,8 @@ public final class VeilCommands extends CommandBase {
         sender.sendMessage(new TextComponentString("[Veil] Dia="+d.clock.day()+
                 " iniciado="+d.clock.active()+" concluido="+d.clock.completed()+
                 " arvore="+d.treeActive+" livroPendente="+d.bookPending+
+                " arvoreEtapa="+d.treeStage+" blocosConstruidos="+d.treeCursor+
+                " aparicoesRitual="+Integer.bitCount(d.treeWatcherFlags&7)+
                 " criaturasEmEspera="+d.suspendedMobs.size()));
     }
 }
