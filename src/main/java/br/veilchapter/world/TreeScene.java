@@ -203,10 +203,17 @@ public final class TreeScene {
             int dz=(trial/5)-2;
             BlockPos probe=new BlockPos(Math.floor(centerX)+dx,4,Math.floor(centerZ)+dz);
             if(!w.isBlockLoaded(probe,false))continue;
-            BlockPos at=w.getHeight(probe);
-            // Roots grow around the speaker. Keep it close to the field, not up in the canopy.
-            if(at.getY()<4 || at.getY()>9)continue;
-            if(!w.isAirBlock(at) || !w.isAirBlock(at.up()) || w.isAirBlock(at.down()))continue;
+            // DO NOT use World.getHeight() here: once the gigantic crown exists,
+            // that heightmap points to LEAVES ~100 blocks above the player's view.
+            BlockPos at=null;
+            for(int floorY=4;floorY<=9;floorY++){
+                BlockPos candidate=new BlockPos(probe.getX(),floorY,probe.getZ());
+                if(w.isAirBlock(candidate) && w.isAirBlock(candidate.up()) &&
+                   !w.isAirBlock(candidate.down())){
+                    at=candidate;break;
+                }
+            }
+            if(at==null)continue;
             if(p.getDistanceSq(at.getX()+.5,at.getY(),at.getZ()+.5)<16)continue;
             EntityWatcher watcher=new EntityWatcher(w);
             watcher.setLocationAndAngles(at.getX()+.5,at.getY(),at.getZ()+.5,
