@@ -78,7 +78,7 @@ public final class TreeScene {
     public void enter(EntityPlayerMP player,StoryData d) {
         if(player.dimension!=0 || !d.treeActive) return;
         try {
-            Entity changed=player.changeDimension(VeilMod.CLEARING_DIM,new FixedPoint(0.5,4, 25.5, 180F, 0F));
+            Entity changed=player.changeDimension(VeilMod.CLEARING_DIM,new FixedPoint(0.5,4, 45.5, 180F, 0F));
             if (changed == null || changed.dimension!=VeilMod.CLEARING_DIM) {
                 VeilMod.LOG.error("Transicao para clearing nao confirmada; mantendo gatilho pendente.");
                 d.treeActive=false;d.treeTriggerConsumed=false;d.markDirty();
