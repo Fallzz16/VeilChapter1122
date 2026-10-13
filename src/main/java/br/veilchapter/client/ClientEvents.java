@@ -11,16 +11,9 @@ public final class ClientEvents {
     private ClearingAmbientSound clearingAmbient;
     private boolean playedThisVisit;
 
-    /** Enforce the exact tree-facing angle on every rendered frame, not just 20 TPS. */
-    @SubscribeEvent public void camera(EntityViewRenderEvent.CameraSetup event) {
-        Minecraft mc=Minecraft.getMinecraft();
-        if(ClientCinematicState.locked && mc.player!=null &&
-                mc.player.dimension==br.veilchapter.VeilMod.CLEARING_DIM){
-            event.setYaw(180F);
-            event.setPitch(-14F);
-            event.setRoll(0F);
-        }
-    }
+    // Player yaw already points from z=45.5 toward the tree at z=0.
+    // No CameraSetup override: its yaw is a renderer-space rotation and caused
+    // an unintended 180-degree flip in actual 1.12.2 gameplay.
 
     @SubscribeEvent public void fog(EntityViewRenderEvent.FogColors event) {
         Minecraft mc = Minecraft.getMinecraft();
