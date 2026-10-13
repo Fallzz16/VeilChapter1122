@@ -278,7 +278,9 @@ public final class TreeScene {
         List<Placement> detail=new ArrayList<>();
         Set<BlockPos> used=new HashSet<>();
         IBlockState log=Blocks.LOG.getDefaultState();
-        IBlockState leaves=Blocks.LEAVES.getDefaultState();
+        IBlockState leaves=Blocks.LEAVES.getDefaultState()
+                .withProperty(net.minecraft.block.BlockLeaves.DECAYABLE,false)
+                .withProperty(net.minecraft.block.BlockLeaves.CHECK_DECAY,false);
 
         // Walkable oak chamber floor; remains protected from every build/update.
         for(int x=-5;x<=5;x++)for(int z=-5;z<=5;z++)
@@ -382,6 +384,10 @@ public final class TreeScene {
         Set<BlockPos> unique=new HashSet<>();
         for(Placement op:operations){
             if(!unique.add(op.pos))throw new IllegalStateException("Duplicate tree coordinate "+op.pos);
+            if(op.state.getBlock() instanceof net.minecraft.block.BlockLeaves &&
+                    op.state.getValue(net.minecraft.block.BlockLeaves.DECAYABLE))
+                throw new IllegalStateException("Ritual crown leaves may decay at "+op.pos);
+
             // 4-block-high walkway leading from the south into the center.
             if(op.pos.getX()>=-2 && op.pos.getX()<=2 &&
                op.pos.getZ()>=1 && op.pos.getZ()<=15 &&
