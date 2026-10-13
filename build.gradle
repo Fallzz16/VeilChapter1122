@@ -14,7 +14,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 
-version = '0.2.8-cinematic-gate'
+version = '0.2.9-stalking-test'
 group = 'br.veilchapter'
 archivesBaseName = 'VeilChapter1122'
 sourceCompatibility = targetCompatibility = '1.8'
