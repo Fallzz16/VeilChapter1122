@@ -36,6 +36,16 @@ public final class GameEvents {
     private long lastLogicTick = -1;
     private final Random random = new Random();
 
+    /** Restart the full dialogue if a player logs back in during the sealed cinematic. */
+    @SubscribeEvent public void loggedIn(net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent ev) {
+        if (!(ev.player instanceof EntityPlayerMP)) return;
+        EntityPlayerMP p=(EntityPlayerMP)ev.player;
+        if(p.dimension!=VeilMod.CLEARING_DIM || dimensionUnavailable)return;
+        StoryData d=StoryData.get(p.world);
+        if(d.treeActive && d.treeStage==1){
+            d.treeStarted=0;d.treeWatcherFlags=0;d.markDirty();
+        }
+    }
     @SubscribeEvent public void wake(PlayerWakeUpEvent ev) {
         if (!(ev.getEntityPlayer() instanceof EntityPlayerMP)) return;
         EntityPlayerMP player = (EntityPlayerMP) ev.getEntityPlayer();
