@@ -22,7 +22,7 @@ public final class ClientEvents {
         if(event.getSound()!=null && event.getSound().getCategory()!=SoundCategory.PLAYERS) {
             // Silence the clearing without blocking the three scripted positional voices.
             boolean ritualVoice=event.getSound().getSoundLocation()!=null &&
-                    br.veilchapter.VeilMod.ID.equals(event.getSound().getSoundLocation().getResourceDomain());
+                    event.getSound().getSoundLocation().toString().startsWith(br.veilchapter.VeilMod.ID + ":");
             if(!ritualVoice)event.setResultSound(null);
         }
     }
