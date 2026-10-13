@@ -10,6 +10,8 @@ import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.util.SoundEvent;
+import br.veilchapter.sound.VeilSounds;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -22,6 +24,7 @@ import java.util.Random;
 /** World deterioration. Reversible entity stasis is disabled by default until in-game validation. */
 public final class DreadSystem {
     private final Random random=new Random();
+    private long nextAtmosphereTick;
     public void tick(EntityPlayerMP p,StoryData d,long now) {
         if (d.clock.day()<6 || d.clock.completed())return;
         WorldServer world=(WorldServer)p.world;
@@ -114,19 +117,72 @@ public final class DreadSystem {
             }
         }
     }
-    public void playUnsettlingSound(EntityPlayerMP p,int day,Random rng) {
-        WorldServer w=(WorldServer)p.world;
-        BlockPos pos=p.getPosition().add(rng.nextInt(29)-14,rng.nextInt(7)-3,rng.nextInt(29)-14);
-        if(day>=4 && rng.nextInt(4)==0) {
-            // Illusory door: audio alone, does not change any block.
-            w.playSound(null,pos, rng.nextBoolean()?SoundEvents.BLOCK_WOODEN_DOOR_OPEN:SoundEvents.BLOCK_WOODEN_DOOR_CLOSE,
-                    SoundCategory.AMBIENT,.35F,.8F+rng.nextFloat()*.35F);
-        } else if(day>=4 && rng.nextInt(5)==0) {
-            w.playSound(null,pos,SoundEvents.BLOCK_WOOD_STEP,SoundCategory.AMBIENT,
-                    .18F,.65F+rng.nextFloat()*.2F);
+    /** Server-authoritative positional sound, not a stereo track in the listener's head. */
+    public static void playSpatial(EntityPlayerMP p, SoundEvent sound, double x, double y, double z,
+                                   float volume, float pitch) {
+        if (!(p.world instanceof WorldServer) || p.dimension != 0) return;
+        ((WorldServer)p.world).playSound(null, x, y, z, sound, SoundCategory.AMBIENT, volume, pitch);
+    }
+
+    /** Organic cooldown, independent of the other paranormal-event scheduler. */
+    public void audioTick(EntityPlayerMP p, StoryData d, long now) {
+        if (!d.clock.active() || d.awakeningPending || d.treeActive || d.clock.completed()) return;
+        if (nextAtmosphereTick == 0L) {
+            nextAtmosphereTick = now + (90 + random.nextInt(150)) * 20L;
+            return;
+        }
+        if (now < nextAtmosphereTick) return;
+        playDirectionalSound(p, d.clock.day(), random);
+        int day = d.clock.day();
+        int min = day < 4 ? 220 : day < 6 ? 145 : 75;
+        int additional = day < 4 ? 260 : day < 6 ? 180 : 145;
+        nextAtmosphereTick = now + (min + random.nextInt(additional + 1)) * 20L;
+    }
+
+    /** Spatial source in loaded air at 5..11 blocks, selected around the player. */
+    public void playDirectionalSound(EntityPlayerMP p, int day, Random rng) {
+        if (p.dimension != 0 || day < 2) return;
+        WorldServer w = (WorldServer)p.world;
+        SoundEvent selected;
+        int choice = rng.nextInt(100);
+        if (day < 4) {
+            selected = choice < 90 ? VeilSounds.PSST : VeilSounds.HEY;
+        } else if (day < 6) {
+            selected = choice < 51 ? VeilSounds.PSST : choice < 77 ? VeilSounds.HEY
+                     : choice < 95 ? VeilSounds.BREATH : VeilSounds.LAUGH;
         } else {
-            w.playSound(null,pos, br.veilchapter.sound.VeilSounds.PSST,SoundCategory.AMBIENT,
-                    .25F+rng.nextFloat()*.2F,.82F+rng.nextFloat()*.35F);
+            selected = choice < 27 ? VeilSounds.PSST : choice < 48 ? VeilSounds.HEY
+                     : choice < 78 ? VeilSounds.BREATH : VeilSounds.LAUGH;
+        }
+        float volume = selected == VeilSounds.LAUGH ? .62F
+                     : selected == VeilSounds.BREATH ? .52F : .67F;
+        float pitch = .97F + rng.nextFloat() * .06F;
+        // Rejections prevent sounds from originating inside opaque blocks; no chunk loads.
+        for (int i = 0; i < 16; i++) {
+            double angle = rng.nextDouble() * Math.PI * 2.0;
+            double distance = 5.0 + rng.nextDouble() * 6.0;
+            double x = p.posX + Math.cos(angle) * distance;
+            double y = p.posY + .65 + rng.nextDouble() * 1.3;
+            double z = p.posZ + Math.sin(angle) * distance;
+            BlockPos check = new BlockPos(x, y, z);
+            if (!w.isBlockLoaded(check, false) || w.getBlockState(check).isOpaqueCube()) continue;
+            playSpatial(p, selected, x, y, z, volume, pitch);
+            return;
+        }
+    }
+
+    public void playUnsettlingSound(EntityPlayerMP p, int day, Random rng) {
+        WorldServer w = (WorldServer)p.world;
+        BlockPos pos = p.getPosition().add(rng.nextInt(29)-14, rng.nextInt(7)-3, rng.nextInt(29)-14);
+        if (day >= 4 && rng.nextInt(4) == 0) {
+            // Illusory door sound; the real door is not changed.
+            w.playSound(null, pos, rng.nextBoolean()?SoundEvents.BLOCK_WOODEN_DOOR_OPEN:SoundEvents.BLOCK_WOODEN_DOOR_CLOSE,
+                    SoundCategory.AMBIENT, .35F, .8F+rng.nextFloat()*.35F);
+        } else if (day >= 4 && rng.nextInt(5) == 0) {
+            w.playSound(null, pos, SoundEvents.BLOCK_WOOD_STEP, SoundCategory.AMBIENT,
+                    .18F, .65F+rng.nextFloat()*.2F);
+        } else {
+            playDirectionalSound(p, day, rng);
         }
     }
 }

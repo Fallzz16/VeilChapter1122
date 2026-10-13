@@ -69,7 +69,7 @@ public final class PresenceSystem {
             if (!home) {
                 double sq=p.getDistanceSq(at.getX()+.5,at.getY(),at.getZ()+.5);
                 if(sq<40*40 || sq>70*70)continue;
-                if(seenPoint(p,new Vec3d(at.getX()+.5, at.getY()+1.1, at.getZ()+.5)))continue;
+                if(seenPoint(p,new Vec3d(at.getX()+.5,at.getY()+1.1,at.getZ()+.5)))continue;
             }
             EntityWatcher candidate=new EntityWatcher(w);
             candidate.setLocationAndAngles(at.getX()+.5,at.getY(),at.getZ()+.5,0,0);
@@ -84,7 +84,7 @@ public final class PresenceSystem {
     private BlockPos distantPoint(EntityPlayerMP p,WorldServer w) {
         Vec3d look=p.getLookVec();
         Vec3d backward=new Vec3d(-look.x,0,-look.z).normalize();
-        if (Math.sqrt(backward.x*backward.x + backward.y*backward.y + backward.z*backward.z)<.1)return null;
+        if (Math.sqrt(backward.x*backward.x+backward.y*backward.y+backward.z*backward.z)<.1)return null;
         int radius=40+rng.nextInt(31);
         double angle=(rng.nextDouble()-.5)*.75;
         double x=backward.x*Math.cos(angle)-backward.z*Math.sin(angle);
@@ -102,7 +102,7 @@ public final class PresenceSystem {
     private static boolean seenPoint(EntityPlayerMP p, Vec3d target) {
         Vec3d eye=p.getPositionEyes(1.0F);
         Vec3d ray=target.subtract(eye);
-        double len=Math.sqrt(ray.x*ray.x + ray.y*ray.y + ray.z*ray.z);
+        double len=Math.sqrt(ray.x*ray.x+ray.y*ray.y+ray.z*ray.z);
         if (len<.01 || p.getLookVec().normalize().dotProduct(ray.normalize())<.89)return false;
         // Raytrace may treat glass as an obstruction; this is a known pre-playtest limitation.
         Vec3d dir=ray.normalize();
@@ -124,7 +124,7 @@ public final class PresenceSystem {
             BlockPos target=new BlockPos(w.posX+rng.nextInt(7)-3,w.posY,w.posZ+rng.nextInt(7)-3);
             if (!w.world.isBlockLoaded(target,false))continue;
             if (!w.world.isAirBlock(target)||!w.world.isAirBlock(target.up())||w.world.isAirBlock(target.down()))continue;
-            if (seenPoint(p,new Vec3d(target.getX()+.5, target.getY()+1.0, target.getZ()+.5)))continue;
+            if (seenPoint(p,new Vec3d(target.getX()+.5,target.getY()+1.0,target.getZ()+.5)))continue;
             w.setPosition(target.getX()+.5,target.getY(),target.getZ()+.5);
             if(rng.nextInt(4)==0)w.world.playSound(null,target,
                 net.minecraft.init.SoundEvents.BLOCK_GRASS_STEP,

@@ -83,6 +83,7 @@ public final class GameEvents {
         }
         if (d.bookPending && !d.treeActive && p.dimension == 0) tree.deliverBook(p,d);
         if (!d.clock.active() || d.awakeningPending) return;
+        if (now%20==0 && VeilConfig.enableAnomalies) dread.audioTick(p,d,now);
         if (now%5==0 && VeilConfig.enableWatcher) presence.tick(p,d,now);
         if(now%5==0 && d.clock.day()>=2 && !d.clock.completed()) {
             int checked=0;
