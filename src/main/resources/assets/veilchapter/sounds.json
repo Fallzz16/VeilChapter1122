@@ -75,39 +75,138 @@
       }
     ]
   },
-  "watcher_voice_01": {
+  "watcher_voice_01_open": {
     "category": "ambient",
     "sounds": [
       {
-        "name": "veilchapter:watcher/watcher_voice_01",
-        "stream": false
+        "name": "veilchapter:watcher/watcher_voice_01_open",
+        "stream": true
       }
     ]
   },
-  "watcher_voice_02": {
+  "watcher_voice_01_muffled": {
     "category": "ambient",
     "sounds": [
       {
-        "name": "veilchapter:watcher/watcher_voice_02",
-        "stream": false
+        "name": "veilchapter:watcher/watcher_voice_01_muffled",
+        "stream": true
       }
     ]
   },
-  "watcher_voice_03": {
+  "watcher_voice_01_indoor": {
     "category": "ambient",
     "sounds": [
       {
-        "name": "veilchapter:watcher/watcher_voice_03",
-        "stream": false
+        "name": "veilchapter:watcher/watcher_voice_01_indoor",
+        "stream": true
       }
     ]
   },
-  "watcher_voice_04": {
+  "watcher_voice_02_open": {
     "category": "ambient",
     "sounds": [
       {
-        "name": "veilchapter:watcher/watcher_voice_04",
-        "stream": false
+        "name": "veilchapter:watcher/watcher_voice_02_open",
+        "stream": true
+      }
+    ]
+  },
+  "watcher_voice_02_muffled": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "veilchapter:watcher/watcher_voice_02_muffled",
+        "stream": true
+      }
+    ]
+  },
+  "watcher_voice_02_indoor": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "veilchapter:watcher/watcher_voice_02_indoor",
+        "stream": true
+      }
+    ]
+  },
+  "watcher_voice_03_open": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "veilchapter:watcher/watcher_voice_03_open",
+        "stream": true
+      }
+    ]
+  },
+  "watcher_voice_03_muffled": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "veilchapter:watcher/watcher_voice_03_muffled",
+        "stream": true
+      }
+    ]
+  },
+  "watcher_voice_03_indoor": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "veilchapter:watcher/watcher_voice_03_indoor",
+        "stream": true
+      }
+    ]
+  },
+  "watcher_voice_04_open": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "veilchapter:watcher/watcher_voice_04_open",
+        "stream": true
+      }
+    ]
+  },
+  "watcher_voice_04_muffled": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "veilchapter:watcher/watcher_voice_04_muffled",
+        "stream": true
+      }
+    ]
+  },
+  "watcher_voice_04_indoor": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "veilchapter:watcher/watcher_voice_04_indoor",
+        "stream": true
+      }
+    ]
+  },
+  "watcher_voice_05_open": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "veilchapter:watcher/watcher_voice_05_open",
+        "stream": true
+      }
+    ]
+  },
+  "watcher_voice_05_muffled": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "veilchapter:watcher/watcher_voice_05_muffled",
+        "stream": true
+      }
+    ]
+  },
+  "watcher_voice_05_indoor": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "veilchapter:watcher/watcher_voice_05_indoor",
+        "stream": true
       }
     ]
   }
