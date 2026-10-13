@@ -383,9 +383,13 @@ public final class TreeScene {
 
         // Eleven long and sweeping, yet affordable, structural branches.
         for(int arm=0;arm<11;arm++){
-            double angle=arm*Math.PI*2.0/11.0+0.11;
+            double angle=arm*Math.PI*2.0/11.0+0.11+0.13*Math.sin(arm*2.61);
             int startLevel=12+(arm%6)*2;
-            int length=13+(arm%4)*2; // 13–19 block branches
+            int length=13+(arm%4)*2;
+            IBlockState branchLog=log.withProperty(net.minecraft.block.BlockLog.LOG_AXIS,
+                    Math.abs(Math.cos(angle))>Math.abs(Math.sin(angle))?
+                    net.minecraft.block.BlockLog.EnumAxis.X:
+                    net.minecraft.block.BlockLog.EnumAxis.Z);
             for(int t=0;t<=length;t++){
                 double reach=1.8+t*0.98;
                 int cx=(int)Math.round(Math.cos(angle)*reach+0.5*Math.sin(startLevel*.16));
@@ -396,8 +400,29 @@ public final class TreeScene {
                 for(int dx=-radius;dx<=radius;dx++)for(int dz=-radius;dz<=radius;dz++)
                     for(int dy=-radius;dy<=radius;dy++){
                         if(dx*dx+dz*dz+dy*dy>radius*radius+1)continue;
-                        addUnique(timber,used,new BlockPos(cx+dx,4+level+dy,cz+dz),log);
+                        addUnique(timber,used,new BlockPos(cx+dx,4+level+dy,cz+dz),branchLog);
                     }
+            }
+            // Offshoots grow out of existing limbs, creating irregular negative space.
+            if(arm%3!=1) {
+                int forkAt=length-7;
+                double forkAngle=angle+(arm%2==0?0.39:-0.47);
+                int baseLevel=startLevel+(int)Math.round(forkAt*.36-forkAt*forkAt*.013);
+                for(int step=0;step<=7;step++){
+                    double reach=1.8+forkAt*.98;
+                    int bx=(int)Math.round(Math.cos(angle)*reach+
+                            Math.cos(forkAngle)*step+0.5*Math.sin(startLevel*.16));
+                    int bz=(int)Math.round(Math.sin(angle)*reach+
+                            Math.sin(forkAngle)*step);
+                    int yLevel=Math.min(28,baseLevel+(int)Math.round(step*.21));
+                    IBlockState forkLog=log.withProperty(net.minecraft.block.BlockLog.LOG_AXIS,
+                            Math.abs(Math.cos(forkAngle))>Math.abs(Math.sin(forkAngle))?
+                            net.minecraft.block.BlockLog.EnumAxis.X:
+                            net.minecraft.block.BlockLog.EnumAxis.Z);
+                    addUnique(timber,used,new BlockPos(bx,4+yLevel,bz),forkLog);
+                    if(step==6)
+                        canopyLobe(crown,details,used,leaves,bx,yLevel,bz,3,2,3);
+                }
             }
             // Uneven leaf lobes at middle and extremities, not a spherical canopy.
             for(int lobe=0;lobe<3;lobe++){
