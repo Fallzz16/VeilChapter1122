@@ -46,6 +46,8 @@ public final class VeilMod {
         proxy.preInit();
     }
     @Mod.EventHandler public void serverStarting(FMLServerStartingEvent event) {
+        if(Boolean.getBoolean("veilchapter.ciTreePlan"))
+            br.veilchapter.world.TreeScene.verifyPlanForCI();
         event.registerServerCommand(new VeilCommands());
         event.registerServerCommand(new VeilDebugCommands());
     }
