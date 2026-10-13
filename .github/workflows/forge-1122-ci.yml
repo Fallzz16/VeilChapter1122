@@ -3,7 +3,7 @@ name: Forge 1.12.2 - Build and QA
 on:
   workflow_dispatch:
   push:
-    branches: [main, dev/watcher-dual-voice-tree, dev/tree-30-atmosphere-v028]
+    branches: [main, dev/watcher-dual-voice-tree, dev/tree-30-atmosphere-v028, dev/tree-sealed-watcher-cinematic-v028]
     paths:
       - 'src/**'
       - 'build.gradle'
