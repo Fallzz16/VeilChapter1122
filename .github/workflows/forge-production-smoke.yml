@@ -30,7 +30,9 @@ jobs:
           set -euo pipefail
           bash tools/preparar_mdk.sh
           ./gradlew --no-daemon clean build 2>&1 | tee compile_log.txt
-          test -f build/libs/VeilChapter1122-0.2.4-alpha-internal.jar
+          jars=(build/libs/VeilChapter1122-*.jar)
+          test -f "${jars[0]}"
+          echo "Mod JAR to test: ${jars[0]}"
       - name: Install official Forge production server
         shell: bash
         run: |
@@ -41,7 +43,9 @@ jobs:
             'https://maven.minecraftforge.net/net/minecraftforge/forge/1.12.2-14.23.5.2859/forge-1.12.2-14.23.5.2859-installer.jar' -o "$RUNNER_TEMP/forge-installer.jar"
           echo '6b3d5be8b58d5385fda9c4d285367f4cb6e697b2  '"$RUNNER_TEMP/forge-installer.jar" | sha1sum -c -
           ( cd "$SERVER" && java -jar "$RUNNER_TEMP/forge-installer.jar" --installServer ) 2>&1 | tee production_install_log.txt
-          cp build/libs/VeilChapter1122-0.2.4-alpha-internal.jar "$SERVER/mods/"
+          jars=(build/libs/VeilChapter1122-*.jar)
+          test -f "${jars[0]}"
+          cp "${jars[0]}" "$SERVER/mods/"
           test -f "$SERVER/forge-1.12.2-14.23.5.2859.jar"
           printf 'eula=true\n' > "$SERVER/eula.txt"
       - name: Boot actual Forge production server
