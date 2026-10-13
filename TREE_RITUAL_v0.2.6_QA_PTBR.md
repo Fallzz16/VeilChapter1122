@@ -8,7 +8,7 @@
 
 1. **150 segundos**, com a progressão planejada: 0–20s silêncio e preparo discreto de chunks; 20–45s raízes; 45–85s tronco e galhos; 85–125s contorno de copa; 125–150s refinamento. O baú só aparece depois de todos os blocos serem processados.
 2. **24 operações de bloco por tick**, em vez do limite antigo de 220. Pré-carregamento em lotes de até um chunk a cada dez ticks durante o silêncio inicial, e no máximo um chunk faltante por tick durante a construção.
-3. **Geometria mais leve**: remove madeira e folhas invisíveis dentro da estrutura, preserva o formato externo do tronco e da copa, inclui galhos e raízes radiais; protege o corredor de entrada ao sul.
+3. **Geometria mais leve e folhas persistentes**: remove madeira e folhas invisíveis dentro da estrutura, preserva o formato externo do tronco e da copa, inclui galhos e raízes radiais; protege o corredor de entrada ao sul. As folhas da copa recebem estado com decaimento desativado e o CI rejeita folhas que possam desaparecer naturalmente.
 4. Ponto inicial da dimensão deslocado para perto do tronco, olhando para a entrada. Jogador livre para andar; sem câmera obrigatória.
 5. Três aparições **não hostis** e identificadas do Watcher: uma no começo, outra durante o crescimento e a última junto à entrada depois da conclusão; cada uma desaparece automaticamente.
 6. Mensagens na actionbar em português: **“Você demorou.”**, **“Tudo começa abaixo de nós.”**, **“Observe.”**, **“Mesmo aquilo que foi esquecido continua crescendo.”**, **“Três dias.”**, e ao final **“Agora, entre.”**
