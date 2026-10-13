@@ -6,6 +6,7 @@ import br.veilchapter.core.TreeMath;
 import br.veilchapter.core.TreeRitualPacing;
 import br.veilchapter.entity.EntityWatcher;
 import br.veilchapter.sound.VeilSounds;
+import br.veilchapter.sound.TreeRitualAudio;
 import br.veilchapter.state.StoryData;
 import br.veilchapter.system.DreadSystem;
 import net.minecraft.block.state.IBlockState;
@@ -36,17 +37,15 @@ public final class TreeScene {
     public static final BlockPos CHEST = new BlockPos(0,5,0);
     private static List<Placement> plan;
     private static int[] planCounts;
-    // Four COMPLETE spoken passages spaced across the 150-second growth ritual.
-    private static final int[] VOICE_SECONDS = {12, 49, 88, 126};
-    private static final int[] VOICE_DURATION_TICKS = {208, 187, 158, 206};
-    private static final net.minecraft.util.SoundEvent[] VOICES = {
-        VeilSounds.WATCHER_VOICE_01, VeilSounds.WATCHER_VOICE_02,
-        VeilSounds.WATCHER_VOICE_03, VeilSounds.WATCHER_VOICE_04
-    };
+    // Five COMPLETE spoken passages, mastered as mono OGG and separated by silence.
+    // Timeline fits into the existing 150-second Tree Ritual without delaying the chest.
+    private static final int[] VOICE_SECONDS = {12, 34, 59, 95, 137};
+    private static final int[] VOICE_DURATION_TICKS = {92, 124, 280, 172, 98};
     private static final String[] SUBTITLES = {
-        "Até que enfim... Eu estava esperando por você.",
-        "Tudo foi perdido naquela vila... tudo foi destruído.",
-        "E eu... eu não pude fazer nada.",
+        "Até que enfim... eu estava esperando por você.",
+        "Tudo parece estranho... mas eu confio em você para salvá-lo.",
+        "Tudo foi perdido naquela vila...",
+        "Não há esperanças naquele lugar...",
         "Mas agora... nós temos você."
     };
     private static final DreadSystem RESTORER = new DreadSystem();
@@ -173,7 +172,7 @@ public final class TreeScene {
                 d.markDirty();
                 continue;
             }
-            if(spawnRitualWatcher(w,p,i,VOICE_DURATION_TICKS[i]+12,VOICES[i])) {
+            if(spawnRitualWatcher(w,p,i,VOICE_DURATION_TICKS[i]+12)) {
                 d.treeWatcherFlags|=mask;
                 d.markDirty();
                 p.sendStatusMessage(new TextComponentString(SUBTITLES[i]),true);
@@ -184,8 +183,7 @@ public final class TreeScene {
 
     /** A visible but harmless speaker close to the player's current field of view.
         No chunk loading or player camera/position manipulation is needed. */
-    private boolean spawnRitualWatcher(WorldServer w,EntityPlayerMP p,int cue,int life,
-                                       net.minecraft.util.SoundEvent sound) {
+    private boolean spawnRitualWatcher(WorldServer w,EntityPlayerMP p,int cue,int life) {
         double facingX=p.getLookVec().x, facingZ=p.getLookVec().z;
         double facingLength=Math.sqrt(facingX*facingX+facingZ*facingZ);
         if(facingLength<0.1){
@@ -203,8 +201,11 @@ public final class TreeScene {
         for(int trial=0;trial<24;trial++){
             int dx=(trial%5)-2;
             int dz=(trial/5)-2;
-            BlockPos at=new BlockPos(Math.floor(centerX)+dx,4,Math.floor(centerZ)+dz);
-            if(!w.isBlockLoaded(at,false))continue;
+            BlockPos probe=new BlockPos(Math.floor(centerX)+dx,4,Math.floor(centerZ)+dz);
+            if(!w.isBlockLoaded(probe,false))continue;
+            BlockPos at=w.getHeight(probe);
+            // Roots grow around the speaker. Keep it close to the field, not up in the canopy.
+            if(at.getY()<4 || at.getY()>9)continue;
             if(!w.isAirBlock(at) || !w.isAirBlock(at.up()) || w.isAirBlock(at.down()))continue;
             if(p.getDistanceSq(at.getX()+.5,at.getY(),at.getZ()+.5)<16)continue;
             EntityWatcher watcher=new EntityWatcher(w);
@@ -213,9 +214,10 @@ public final class TreeScene {
             watcher.getEntityData().setBoolean("veilRitual",true);
             watcher.getEntityData().setLong("veilRitualUntil",w.getTotalWorldTime()+life);
             if(!w.spawnEntity(watcher))continue;
-            // Spatial mono audio uses the Watcher's WORLD location.
-            w.playSound(null,watcher.posX,watcher.posY+1.25,watcher.posZ,
-                    sound,SoundCategory.AMBIENT,1.0F,1.0F);
+            // The sound has a REAL 3D point and a low-cost environment-dependent variant.
+            TreeRitualAudio.Room acoustic=TreeRitualAudio.play(w,p,
+                    new net.minecraft.util.math.Vec3d(watcher.posX,watcher.posY+1.25,watcher.posZ),cue);
+            VeilMod.LOG.debug("Watcher Tree Ritual voice {} at {}: {}",cue+1,at,acoustic);
             return true;
         }
         return false;
