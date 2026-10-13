@@ -19,7 +19,11 @@ public final class ClientEvents {
     @SubscribeEvent public void audio(PlaySoundEvent event) {
         Minecraft mc=Minecraft.getMinecraft();
         if(mc.player==null || br.veilchapter.GameEvents.dimensionUnavailable || mc.player.dimension!=br.veilchapter.VeilMod.CLEARING_DIM) return;
-        if(event.getSound()!=null && event.getSound().getCategory()!=SoundCategory.PLAYERS)
-            event.setResultSound(null); // all ambience, music, weather and mobs stay silent
+        if(event.getSound()!=null && event.getSound().getCategory()!=SoundCategory.PLAYERS) {
+            // Silence the clearing without blocking the three scripted positional voices.
+            boolean ritualVoice=event.getSound().getSoundLocation()!=null &&
+                    br.veilchapter.VeilMod.ID.equals(event.getSound().getSoundLocation().getResourceDomain());
+            if(!ritualVoice)event.setResultSound(null);
+        }
     }
 }
