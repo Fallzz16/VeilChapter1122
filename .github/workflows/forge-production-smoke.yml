@@ -58,7 +58,7 @@ jobs:
           set -u
           SERVER="$RUNNER_TEMP/veil-server"
           cd "$SERVER"
-          java -Xms512M -Xmx2G -jar forge-1.12.2-14.23.5.2859.jar nogui > "$GITHUB_WORKSPACE/production_server_log.txt" 2>&1 &
+          java -Xms512M -Xmx2G -Dveilchapter.ciTreePlan=true -jar forge-1.12.2-14.23.5.2859.jar nogui > "$GITHUB_WORKSPACE/production_server_log.txt" 2>&1 &
           server_pid=$!
           booted=0
           for i in $(seq 1 180); do
@@ -70,6 +70,10 @@ jobs:
           kill -INT "$server_pid" 2>/dev/null || true
           if [ "$booted" -ne 1 ]; then
             echo 'PRODUCTION_SERVER_BOOT_FAILED: no ready message'
+            exit 1
+          fi
+          if ! grep -q 'TREE_RITUAL_PLAN_OK' "$GITHUB_WORKSPACE/production_server_log.txt"; then
+            echo 'TREE_RITUAL_PLAN_FAILED_OR_NOT_RUN'
             exit 1
           fi
           if ! grep -i 'veilchapter' "$GITHUB_WORKSPACE/production_server_log.txt"; then
