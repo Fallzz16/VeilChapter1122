@@ -295,7 +295,7 @@ public final class TreeScene {
                 for(int dx=-3;dx<=3;dx++)for(int dz=-3;dz<=3;dz++)
                     for(int dy=-1;dy<=2;dy++){
                         int x=(int)Math.round(centerX)+dx,z=(int)Math.round(centerZ)+dz;
-                        if(z>=7 && z<=30 && Math.abs(x)<=3)continue;
+                        if(z>=0 && z<=30 && Math.abs(x)<=3)continue;
                         if(dx*dx+dz*dz+dy*dy*.9>r*r)continue;
                         addUnique(roots,used,new BlockPos(x,(int)Math.round(height)+dy,z),log);
                     }
