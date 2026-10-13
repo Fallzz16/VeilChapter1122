@@ -1,6 +1,5 @@
-// VEIL CHAPTER v0.2.7 - WATCHER SPATIAL VOICE (NEEDS CLIENT PLAYTEST).
-// ForgeGradle 5.1.74 / Gradle 7.3.3, publicado oficialmente.
-// Exige verificacao de userdev3 do Forge 2859 e um build real antes de entrega.
+// Veil Chapter v0.3.1 — pinned GeckoLib3 1.12.2 production animation pipeline.
+// Requires GeckoLib 3.0.31 as a separate mod; no library binaries redistributed.
 buildscript {
     repositories {
         maven { name = 'MinecraftForge'; url = 'https://maven.minecraftforge.net/' }
@@ -14,7 +13,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 
-version = '0.3.0-entities-alpha2'
+version = '0.3.1-geckolib-art-dev'
 group = 'br.veilchapter'
 archivesBaseName = 'VeilChapter1122'
 sourceCompatibility = targetCompatibility = '1.8'
@@ -34,8 +33,12 @@ minecraft {
     }
 }
 
+repositories {
+    maven { url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
+}
 dependencies {
     minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2859'
+    implementation fg.deobf('software.bernie.geckolib:geckolib-forge-1.12.2:3.0.31')
 }
 processResources {
     inputs.property 'version', project.version

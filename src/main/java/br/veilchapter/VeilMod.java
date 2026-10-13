@@ -18,11 +18,11 @@ import net.minecraftforge.fml.common.registry.EntityRegistry;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = VeilMod.ID, name = VeilMod.NAME, version = VeilMod.VERSION,
-     acceptedMinecraftVersions = "[1.12.2]", dependencies = "required-after:forge@[14.23.5.2859,)")
+     acceptedMinecraftVersions = "[1.12.2]", dependencies = "required-after:forge@[14.23.5.2859,);required-after:geckolib3")
 public final class VeilMod {
     public static final String ID = "veilchapter";
     public static final String NAME = "Veil Chapter - Psychological Horror";
-    public static final String VERSION = "0.3.0-entities-alpha2";
+    public static final String VERSION = "0.3.1-geckolib-art-dev";
     public static final int LEGACY_CLEARING_DIM = 713;
     public static Logger LOG;
     public static net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper NETWORK;
@@ -30,6 +30,7 @@ public final class VeilMod {
     @SidedProxy(clientSide="br.veilchapter.client.ClientProxy", serverSide="br.veilchapter.CommonProxy")
     public static CommonProxy proxy;
     @Mod.EventHandler public void preInit(FMLPreInitializationEvent event) {
+        software.bernie.geckolib3.GeckoLib.initialize();
         LOG = event.getModLog();
         NETWORK=net.minecraftforge.fml.common.network.NetworkRegistry.INSTANCE.newSimpleChannel(ID);
         // Register the packet mapping on BOTH physical sides, not only in ClientProxy.
