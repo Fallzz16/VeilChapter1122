@@ -12,7 +12,16 @@ public final class ClientEvents {
 
     @SubscribeEvent public void fog(EntityViewRenderEvent.FogColors event) {
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.world == null || mc.player == null || mc.player.dimension != 0) return;
+        if(mc.world == null || mc.player == null) return;
+        if(mc.player.dimension == br.veilchapter.VeilMod.CLEARING_DIM) {
+            // Pale, melancholic clearing: color-only tint, no camera motion,
+            // no expensive shader and no thick fog obscuring the complete tree.
+            event.setRed(event.getRed()*.85F);
+            event.setGreen(event.getGreen()*.88F);
+            event.setBlue(event.getBlue()*.92F);
+            return;
+        }
+        if(mc.player.dimension != 0)return;
         if(ClientDayState.active && !ClientDayState.completed && ClientDayState.day>=6) {
             // Atmospheric-only sky/fog attenuation. Actual skylight simulation is NOT implemented.
             event.setRed(event.getRed()*.62F);
