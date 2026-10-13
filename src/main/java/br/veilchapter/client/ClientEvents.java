@@ -1,5 +1,6 @@
 package br.veilchapter.client;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
+import net.minecraftforge.client.event.InputUpdateEvent;
 import net.minecraft.util.SoundCategory;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
@@ -39,13 +40,37 @@ public final class ClientEvents {
             if(clearingAmbient!=null)mc.getSoundHandler().stopSound(clearingAmbient);
             clearingAmbient=null;
             playedThisVisit=false;
+            ClientCinematicState.locked=false;
             return;
+        }
+        if(ClientCinematicState.locked){
+            mc.player.rotationYaw=mc.player.prevRotationYaw=180F;
+            mc.player.rotationPitch=mc.player.prevRotationPitch=-14F;
+            mc.player.rotationYawHead=180F;
+            mc.player.renderYawOffset=180F;
+            mc.player.motionX=mc.player.motionY=mc.player.motionZ=0;
+            mc.player.setSprinting(false);
+            if(mc.player.movementInput!=null){
+                mc.player.movementInput.moveForward=0;
+                mc.player.movementInput.moveStrafe=0;
+                mc.player.movementInput.jump=false;
+                mc.player.movementInput.sneak=false;
+            }
         }
         if(!playedThisVisit) {
             clearingAmbient=new ClearingAmbientSound();
             mc.getSoundHandler().playSound(clearingAmbient);
             playedThisVisit=true;
         }
+    }
+    @SubscribeEvent public void input(InputUpdateEvent event) {
+        Minecraft mc=Minecraft.getMinecraft();
+        if(!ClientCinematicState.locked || mc.player==null ||
+                mc.player.dimension!=br.veilchapter.VeilMod.CLEARING_DIM)return;
+        event.getMovementInput().moveForward=0;
+        event.getMovementInput().moveStrafe=0;
+        event.getMovementInput().jump=false;
+        event.getMovementInput().sneak=false;
     }
     @SubscribeEvent public void audio(PlaySoundEvent event) {
         Minecraft mc=Minecraft.getMinecraft();
