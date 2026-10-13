@@ -11,6 +11,17 @@ public final class ClientEvents {
     private ClearingAmbientSound clearingAmbient;
     private boolean playedThisVisit;
 
+    /** Enforce the exact tree-facing angle on every rendered frame, not just 20 TPS. */
+    @SubscribeEvent public void camera(EntityViewRenderEvent.CameraSetup event) {
+        Minecraft mc=Minecraft.getMinecraft();
+        if(ClientCinematicState.locked && mc.player!=null &&
+                mc.player.dimension==br.veilchapter.VeilMod.CLEARING_DIM){
+            event.setYaw(180F);
+            event.setPitch(-14F);
+            event.setRoll(0F);
+        }
+    }
+
     @SubscribeEvent public void fog(EntityViewRenderEvent.FogColors event) {
         Minecraft mc = Minecraft.getMinecraft();
         if(mc.world == null || mc.player == null) return;
