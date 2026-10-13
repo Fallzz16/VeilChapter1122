@@ -18,7 +18,7 @@ import org.apache.logging.log4j.Logger;
 public final class VeilMod {
     public static final String ID = "veilchapter";
     public static final String NAME = "Veil Chapter - Psychological Horror";
-    public static final String VERSION = "0.2.8-tree30-atmos";
+    public static final String VERSION = "0.2.8-cinematic-gate";
     public static final int CLEARING_DIM = 713;
     public static Logger LOG;
     public static net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper NETWORK;
@@ -31,6 +31,9 @@ public final class VeilMod {
         // Register the packet mapping on BOTH physical sides, not only in ClientProxy.
         NETWORK.registerMessage(br.veilchapter.network.DayStateHandler.class,
                 br.veilchapter.network.DayStatePacket.class, 0,
+                net.minecraftforge.fml.relauncher.Side.CLIENT);
+        NETWORK.registerMessage(br.veilchapter.network.CinematicStateHandler.class,
+                br.veilchapter.network.CinematicStatePacket.class, 1,
                 net.minecraftforge.fml.relauncher.Side.CLIENT);
         EntityRegistry.registerModEntity(new ResourceLocation(ID, "watcher"), EntityWatcher.class,
                 "watcher", 0, this, 96, 3, false);
