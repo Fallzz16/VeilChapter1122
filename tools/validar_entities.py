@@ -17,10 +17,12 @@ mod=(root/"src/main/java/br/veilchapter/VeilMod.java").read_text()
 assert '"watcher", 0, this' in mod
 assert '"peeker", 1, this' in mod
 assert '"tenant", 2, this' in mod
+assert '"echo", 3, this' in mod
+assert '"dragged", 4, this' in mod
 assert "TreeScene" not in mod
-for name in ["EntityWatcher","EntityPeeker","EntityTenant"]:
+for name in ["EntityWatcher","EntityPeeker","EntityTenant","EntityEcho","EntityDragged"]:
     assert (root/"src/main/java/br/veilchapter/entity"/(name+".java")).exists(),name
-for name in ["HorrorDirector","TenantEncounterSystem"]:
+for name in ["HorrorDirector","TenantEncounterSystem","EchoEncounterSystem","DraggedEncounterSystem"]:
     assert (root/"src/main/java/br/veilchapter/system"/(name+".java")).exists(),name
 if "--jar" in sys.argv:
     jar=next((root/"build/libs").glob("*.jar"))
@@ -31,8 +33,17 @@ if "--jar" in sys.argv:
             "br/veilchapter/entity/EntityTenant.class",
             "br/veilchapter/client/ModelTenant.class",
             "br/veilchapter/client/ModelWatcher.class",
-            "br/veilchapter/system/HorrorDirector.class"]:
+            "br/veilchapter/system/HorrorDirector.class",
+            "br/veilchapter/entity/EntityEcho.class",
+            "br/veilchapter/entity/EntityDragged.class",
+            "br/veilchapter/client/RenderEcho.class",
+            "br/veilchapter/client/ModelDragged.class",
+            "br/veilchapter/client/RenderDragged.class"]:
             assert entry in names,entry
         assert z.read("assets/veilchapter/textures/entity/tenant.png")==blob
+        dragged=z.read("assets/veilchapter/textures/entity/dragged.png")
+        assert dragged[:8]==b"\x89PNG\r\n\x1a\n"
+        assert struct.unpack(">II",dragged[16:24])==(64,64)
+        assert hashlib.sha256(dragged).hexdigest()=="8fc6c0f672b93f693ef995353138d686936e30feca56cb1e466fbcd67eab699b"
         assert z.testzip() is None
-print("ENTITIES_ASSETS_QA_PASS: three registered IDs stable, original 64x64 skin, 2 locales, director and model classes")
+print("ENTITIES_ASSETS_QA_PASS: five registered IDs stable, original 64x64 skins, localization and models")

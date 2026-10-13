@@ -1,3 +1,5 @@
 entity.veilchapter.watcher.name=The Watcher
 entity.veilchapter.peeker.name=The Peeker
 entity.veilchapter.tenant.name=The Tenant
+entity.veilchapter.echo.name=The Echo
+entity.veilchapter.dragged.name=The Dragged
