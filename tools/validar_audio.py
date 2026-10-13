@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Build preflight: check sounds.json, OGG containers, source roles, mono 3D readiness."""
-import json, pathlib, subprocess, sys
+import hashlib, json, pathlib, subprocess, sys
 BASE=pathlib.Path(__file__).resolve().parent.parent
 ASSETS=BASE/'src/main/resources/assets/veilchapter'
 sounds=json.loads((ASSETS/'sounds.json').read_text(encoding='utf-8'))
 expected={'psst':5, 'hey':4, 'laugh':3, 'breath':2}
 assert set(sounds)==set(expected), f'SoundEvent mismatch: {list(sounds)}'
+manifest=json.loads((BASE/'AUDIO_QA_MANIFEST.json').read_text(encoding='utf-8'))
+checksums={item['file']:item['sha256'] for item in manifest}
+assert len(checksums)==14 and len(manifest)==14, 'Manifest must have 14 unique tracks'
 count=0
 for event,n in expected.items():
     entries=sounds[event]['sounds']
@@ -17,6 +20,10 @@ for event,n in expected.items():
         path=ASSETS/'sounds'/(ident.partition(':')[2]+'.ogg')
         assert path.is_file(), f'Missing OGG: {path}'
         assert path.read_bytes()[:4]==b'OggS', f'Not valid OGG signature: {path}'
+        relative=str(path.relative_to(BASE)).replace('\\','/')
+        assert relative in checksums, f'No hash for sound: {relative}'
+        actual_hash=hashlib.sha256(path.read_bytes()).hexdigest()
+        assert actual_hash==checksums[relative], f'OGG does not match audio QA manifest: {relative}'
         command=['ffprobe','-v','error','-select_streams','a:0',
                  '-show_entries','stream=channels,sample_rate,codec_name:format=duration',
                  '-of','json',str(path)]
@@ -31,5 +38,5 @@ for event,n in expected.items():
         dur=float(data['format']['duration'])
         assert .3 <= dur <= 15, f'Unexpected length {dur}s for {path}'
         count+=1
-assert count==14
+assert count==14 and set(checksums)=={x['file'] for x in manifest}
 print('AUDIO_QA_PASS:',count,'separate Vorbis OGG sound files, mono at 48000Hz, every sounds.json ref resolved.')
