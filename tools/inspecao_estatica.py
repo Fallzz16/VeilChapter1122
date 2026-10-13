@@ -31,7 +31,7 @@ require('DayStateHandler.class' in mod, 'packet registration from common entry p
 require('registerMessage(' not in client, 'not registered on client side only')
 require('Minecraft.getMinecraft()' not in common, 'common proxy must not load Minecraft client')
 require('acceptDayState' in handler, 'packet dispatched through sided proxy')
-require('dimensionUnavailable' in events, 'dimension ID collision guard')
+require('legacyDimensionUnavailable' in events and 'LegacyClearingRecovery' in events, 'dimension ID collision guard and save rescue')
 require('anomalies.onPlayerBreak(ev.getPos()' in events, 'tracked anomalies removed after replacement')
 meta = json.loads((root/'src/main/resources/mcmod.info').read_text(encoding='utf-8'))
 require(isinstance(meta, list) and meta[0]['modid']=='veilchapter', 'mcmod.info modid')
