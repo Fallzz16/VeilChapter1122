@@ -1,6 +1,8 @@
 package br.veilchapter.system;
 
 import br.veilchapter.entity.EntityWatcher;
+import br.veilchapter.entity.EntityPeeker;
+import br.veilchapter.config.VeilConfig;
 import br.veilchapter.core.ProximityGate;
 import br.veilchapter.state.StoryData;
 import net.minecraft.block.BlockDoor;
@@ -26,12 +28,17 @@ public final class PresenceSystem {
     private final Random rng=new Random();
     private final Map<UUID,ProximityGate> gates=new HashMap<>();
     private long nextDoorAction;
+    private final Map<UUID,Long> nextHorizon=new HashMap<>();
+    private final Map<UUID,Long> nextPeeking=new HashMap<>();
+    private final Map<UUID,Long> pendingSleep=new HashMap<>();
+    private final Map<UUID,EntityWatcher> bedWatchers=new HashMap<>();
 
     public void tick(EntityPlayerMP p, StoryData d, long tick) {
         if(tick%200==0) {
             for(net.minecraft.entity.Entity e:p.world.getEntitiesWithinAABB(EntityWatcher.class,
                  p.getEntityBoundingBox().grow(100))) {
-                if(e!=watcher)e.setDead(); // cleanup entities orphaned after a save/reload
+                if(e!=watcher && !e.getEntityData().getBoolean("veilBedWatcher") &&
+                        !e.getEntityData().getBoolean("veilRitual"))e.setDead();
             }
         }
         if (watcher==null || watcher.isDead || watcher.dimension!=p.dimension || watcher.world!=p.world) {
@@ -39,7 +46,7 @@ public final class PresenceSystem {
         }
         if (tick>expiry) {vanish();return;}
         if (seen(p,watcher)) {
-            if (firstSeen<0) {firstSeen=tick;lastSightDuration=d.clock.completed()?60+rng.nextInt(61):30;}
+            if (firstSeen<0) {firstSeen=tick;lastSightDuration=d.clock.completed()?60+rng.nextInt(61):45+rng.nextInt(36);}
             if (tick-firstSeen>=lastSightDuration) {vanish();return;}
         } else {
             if (rng.nextInt(160)==0 && p.getDistance(watcher)<25) tryHiddenStep(p,watcher);
@@ -68,11 +75,14 @@ public final class PresenceSystem {
             if (w.isAirBlock(at.down())) continue;
             if (!home) {
                 double sq=p.getDistanceSq(at.getX()+.5,at.getY(),at.getZ()+.5);
-                if(sq<40*40 || sq>70*70)continue;
-                if(seenPoint(p,new Vec3d(at.getX()+.5,at.getY()+1.1,at.getZ()+.5)))continue;
+                if(sq<18*18 || sq>VeilConfig.watcherHorizonBlocks*VeilConfig.watcherHorizonBlocks)continue;
+                // A distant Watcher must be in view rather than silently behind the player.
+                if(!seenPoint(p,new Vec3d(at.getX()+.5,at.getY()+1.1,at.getZ()+.5)))continue;
             }
             EntityWatcher candidate=new EntityWatcher(w);
-            candidate.setLocationAndAngles(at.getX()+.5,at.getY(),at.getZ()+.5,0,0);
+            double dx=p.posX-(at.getX()+.5),dz=p.posZ-(at.getZ()+.5);
+            float yaw=(float)Math.toDegrees(Math.atan2(-dx,dz));
+            candidate.setLocationAndAngles(at.getX()+.5,at.getY(),at.getZ()+.5,yaw,0);
             if (!w.getCollisionBoxes(candidate,candidate.getEntityBoundingBox()).isEmpty()) continue;
             if (w.spawnEntity(candidate)) {
                 watcher=candidate; firstSeen=-1;
@@ -81,16 +91,21 @@ public final class PresenceSystem {
             }
         }
     }
+    /** Only choose existing chunks ahead of the player, within a conservative horizon. */
     private BlockPos distantPoint(EntityPlayerMP p,WorldServer w) {
         Vec3d look=p.getLookVec();
-        Vec3d backward=new Vec3d(-look.x,0,-look.z).normalize();
-        if (Math.sqrt(backward.x*backward.x+backward.y*backward.y+backward.z*backward.z)<.1)return null;
-        int radius=40+rng.nextInt(31);
-        double angle=(rng.nextDouble()-.5)*.75;
-        double x=backward.x*Math.cos(angle)-backward.z*Math.sin(angle);
-        double z=backward.x*Math.sin(angle)+backward.z*Math.cos(angle);
+        double mag=Math.sqrt(look.x*look.x+look.z*look.z);
+        if(mag<.1)return null;
+        int serverView=p.getServer().getPlayerList().getViewDistance();
+        int max=Math.min(VeilConfig.watcherHorizonBlocks,Math.max(19,serverView*16-12));
+        int min=Math.max(16,max-16);
+        int radius=min+rng.nextInt(Math.max(1,max-min+1));
+        double angle=(rng.nextDouble()-.5)*.65;
+        double fx=look.x/mag,fz=look.z/mag;
+        double x=fx*Math.cos(angle)-fz*Math.sin(angle);
+        double z=fx*Math.sin(angle)+fz*Math.cos(angle);
         BlockPos hint=p.getPosition().add(x*radius,0,z*radius);
-        if (!w.isBlockLoaded(hint,false))return null;
+        if(!w.isBlockLoaded(hint,false))return null;
         return w.getHeight(hint);
     }
     private BlockPos homePoint(WorldServer w,BlockPos bed) {
