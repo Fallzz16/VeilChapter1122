@@ -11,6 +11,10 @@ on:
       - 'gradle.properties'
       - 'tools/preparar_mdk.sh'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
