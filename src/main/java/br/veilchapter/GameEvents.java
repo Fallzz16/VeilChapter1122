@@ -140,7 +140,11 @@ public final class GameEvents {
         if(ev.getWorld().isRemote)return;
         if(ev.getWorld().provider.getDimension()==VeilMod.CLEARING_DIM && !dimensionUnavailable &&
                 ev.getEntity() instanceof net.minecraft.entity.EntityLiving) {
-            ev.setCanceled(true);return;
+            // The clearing only admits marked Watchers that belong to the scripted ritual.
+            if(!(ev.getEntity() instanceof br.veilchapter.entity.EntityWatcher &&
+                    ev.getEntity().getEntityData().getBoolean("veilRitual")))
+                ev.setCanceled(true);
+            return;
         }
         if (ev.getWorld().provider.getDimension()!=0) return;
         StoryData d=StoryData.get(ev.getWorld());
@@ -192,7 +196,10 @@ public final class GameEvents {
         if (!dimensionUnavailable && ev.getPlayer().dimension==VeilMod.CLEARING_DIM) ev.setCanceled(true);
     }
     @SubscribeEvent public void spawn(LivingSpawnEvent.CheckSpawn ev) {
-        if (!dimensionUnavailable && ev.getWorld().provider.getDimension()==VeilMod.CLEARING_DIM) ev.setResult(Event.Result.DENY);
+        if (!dimensionUnavailable && ev.getWorld().provider.getDimension()==VeilMod.CLEARING_DIM &&
+                !(ev.getEntityLiving() instanceof br.veilchapter.entity.EntityWatcher &&
+                  ev.getEntityLiving().getEntityData().getBoolean("veilRitual")))
+            ev.setResult(Event.Result.DENY);
         if (ev.getWorld().provider.getDimension()==0 && !ev.getWorld().isRemote &&
            ev.getEntityLiving() instanceof net.minecraft.entity.passive.EntityAnimal) {
             StoryData d=StoryData.get((World)ev.getWorld());
