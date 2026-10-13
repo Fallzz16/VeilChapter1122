@@ -1,15 +1,9 @@
 name: Minecraft 1.12.2 - Dedicated Server Smoke Test
 
+# Historical runServer compatibility probe. FG5 dev classpath has a known ASM/FML clash
+# with Forge 1.12.2. Production Forge server smoke is the authoritative boot check.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/forge-smoke-server.yml'
-      - 'src/**'
-      - 'build.gradle'
-      - 'gradle.properties'
-      - 'tools/preparar_mdk.sh'
 
 permissions:
   contents: read
