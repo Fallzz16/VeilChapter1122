@@ -13,8 +13,6 @@ public final class VeilConfig {
     public static boolean enableEntityStasis = false;
     @Config.Comment("Teleporte discreto (experimental). Desativado por seguranca.")
     public static boolean enableSeamlessTeleports = false;
-    @Config.Comment("Sequencia da arvore (experimental). Faça backup do mundo antes de usar.")
-    public static boolean enableTreeSequence = false;
     @Config.Comment("Efeitos de escurecimento: visual + spawns proximos a cama (nao muda sistema global de skylight)")
     public static boolean enableDaySix = true;
     @Config.Comment("Watcher observando a distancia: eventos mais frequentes sem forcar chunks novos.")

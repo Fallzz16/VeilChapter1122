@@ -50,6 +50,15 @@ public class StoryData extends WorldSavedData {
         if (data == null) { data = new StoryData(); store.setData(KEY, data); data.markDirty(); }
         return data;
     }
+    /** Migration from former tree ritual. Never change the story day or clear inventory. */
+    public boolean retireLegacyTree() {
+        if(!treeActive && !treeTriggerConsumed && !returnCommitted && !bookPending &&
+                treeStage==0 && treeCursor==0 && treeWatcherFlags==0 && treeStarted==0)return false;
+        treeActive=false;treeTriggerConsumed=false;returnCommitted=false;bookPending=false;
+        treeStage=0;treeStarted=0;treeCursor=0;treeWatcherFlags=0;
+        markDirty();
+        return true;
+    }
     @Override public void readFromNBT(NBTTagCompound tag) {
         clock.restore(tag.getInteger("day"), tag.getLong("calendar"), tag.getBoolean("active"), tag.getBoolean("complete"));
         bed = new BlockPos(tag.getInteger("bedX"),tag.getInteger("bedY"),tag.getInteger("bedZ"));
