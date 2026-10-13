@@ -17,11 +17,14 @@ public final class VeilSounds {
     public static final SoundEvent HEY = register("hey");
     public static final SoundEvent LAUGH = register("laugh");
     public static final SoundEvent BREATH = register("breath");
+    public static final SoundEvent TREE_DRONE = register("tree_drone");
+    public static final SoundEvent[] TREE_CREAKS = new SoundEvent[6];
 
     public static final SoundEvent[] WATCHER_OPEN = new SoundEvent[5];
     public static final SoundEvent[] WATCHER_MUFFLED = new SoundEvent[5];
     public static final SoundEvent[] WATCHER_INDOOR = new SoundEvent[5];
     static {
+        for (int i = 0; i < TREE_CREAKS.length; i++) TREE_CREAKS[i] = register("tree_creak_" + (i + 1));
         for (int i = 0; i < 5; i++) {
             String stem = "watcher_voice_" + String.format(java.util.Locale.ROOT, "%02d", i + 1);
             WATCHER_OPEN[i] = register(stem + "_open");
@@ -30,7 +33,8 @@ public final class VeilSounds {
         }
     }
     @SubscribeEvent public static void sounds(RegistryEvent.Register<SoundEvent> event) {
-        event.getRegistry().registerAll(PSST, HEY, LAUGH, BREATH);
+        event.getRegistry().registerAll(PSST, HEY, LAUGH, BREATH, TREE_DRONE);
+        event.getRegistry().registerAll(TREE_CREAKS);
         event.getRegistry().registerAll(WATCHER_OPEN);
         event.getRegistry().registerAll(WATCHER_MUFFLED);
         event.getRegistry().registerAll(WATCHER_INDOOR);
