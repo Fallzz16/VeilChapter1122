@@ -110,41 +110,5 @@
         "stream": false
       }
     ]
-  },
-  "watcher_voice_05": {
-    "category": "ambient",
-    "sounds": [
-      {
-        "name": "veilchapter:watcher/watcher_voice_05",
-        "stream": false
-      }
-    ]
-  },
-  "watcher_voice_06": {
-    "category": "ambient",
-    "sounds": [
-      {
-        "name": "veilchapter:watcher/watcher_voice_06",
-        "stream": false
-      }
-    ]
-  },
-  "watcher_voice_07": {
-    "category": "ambient",
-    "sounds": [
-      {
-        "name": "veilchapter:watcher/watcher_voice_07",
-        "stream": false
-      }
-    ]
-  },
-  "watcher_voice_08": {
-    "category": "ambient",
-    "sounds": [
-      {
-        "name": "veilchapter:watcher/watcher_voice_08",
-        "stream": false
-      }
-    ]
   }
 }
