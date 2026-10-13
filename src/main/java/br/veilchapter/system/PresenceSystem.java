@@ -63,6 +63,117 @@ public final class PresenceSystem {
             nextDoorAction=tick+140+rng.nextInt(320);
         }
     }
+    /** Extra, throttled encounters: day 2+; unrelated to ordinary anomaly scheduler. */
+    public void ambientTick(EntityPlayerMP p,StoryData d,long now) {
+        if(!d.clock.active() || d.clock.day()<2 || d.clock.completed() ||
+                p.dimension!=0 || p.isPlayerSleeping())return;
+        UUID id=p.getUniqueID();
+        if(VeilConfig.enableDistantWatcher) {
+            Long next=nextHorizon.get(id);
+            if(next==null)nextHorizon.put(id,now+(60+rng.nextInt(40))*20L);
+            else if(now>=next) {
+                if(watcher==null || watcher.isDead)attemptAppearance(p,d);
+                int interval=d.clock.day()<4?100+rng.nextInt(75):58+rng.nextInt(65);
+                nextHorizon.put(id,now+interval*20L);
+            }
+        }
+        if(VeilConfig.enablePeeking && d.clock.day()>=3) {
+            Long next=nextPeeking.get(id);
+            if(next==null)nextPeeking.put(id,now+(65+rng.nextInt(55))*20L);
+            else if(now>=next) {
+                tryPeeking(p);
+                nextPeeking.put(id,now+(80+rng.nextInt(95))*20L);
+            }
+        }
+    }
+
+    /** Two pale eyes or a partial shadow head above solid terrain/blocks. */
+    private void tryPeeking(EntityPlayerMP player) {
+        WorldServer w=(WorldServer)player.world;
+        if(!w.getEntities(EntityPeeker.class,e->
+                e.getDistanceSq(player)<50*50).isEmpty())return;
+        Vec3d look=player.getLookVec();
+        double mag=Math.sqrt(look.x*look.x+look.z*look.z);
+        if(mag<.1)return;
+        for(int attempt=0;attempt<36;attempt++) {
+            double angle=(rng.nextDouble()-.5)*1.4;
+            int distance=9+rng.nextInt(17);
+            double fx=look.x/mag,fz=look.z/mag;
+            double bx=fx*Math.cos(angle)-fz*Math.sin(angle);
+            double bz=fx*Math.sin(angle)+fz*Math.cos(angle);
+            BlockPos hint=player.getPosition().add(bx*distance,0,bz*distance);
+            if(!w.isBlockLoaded(hint,false))continue;
+            BlockPos cover=new BlockPos(hint.getX(),player.getPosition().getY()+1,hint.getZ());
+            if(!w.isBlockLoaded(cover,false))continue;
+            if(!w.getBlockState(cover).isFullCube()) {
+                cover=w.getHeight(hint).down();
+                if(cover.getY()<=player.getPosition().getY())continue;
+            }
+            if(cover.getY()>player.getPosition().getY()+3 ||
+                !w.getBlockState(cover).isFullCube() || !w.isAirBlock(cover.up()) ||
+                w.getTileEntity(cover)!=null)continue;
+            Vec3d eyes=new Vec3d(cover.getX()+.5,cover.getY()+1.37,cover.getZ()+.5);
+            if(!seenPoint(player,eyes))continue;
+            EntityPeeker e=new EntityPeeker(w);
+            e.setPosition(cover.getX()+.5,cover.getY()+1.09,cover.getZ()+.5);
+            e.setEyesOnly(rng.nextInt(100)<48);
+            if(w.spawnEntity(e))return;
+        }
+    }
+
+    /** A chance on each bed attempt, but the watcher will never force sleep. */
+    public void scheduleBedWatcher(EntityPlayerMP p,int day,long tick,int percent) {
+        UUID id=p.getUniqueID();
+        if(day<2 || pendingSleep.containsKey(id) || bedWatchers.containsKey(id))return;
+        if(rng.nextInt(100)<Math.max(0,Math.min(100,percent)))
+            pendingSleep.put(id,tick+20L);
+    }
+
+    /** Vanishes instantly on waking; vanilla may skip the night before this cue. */
+    public void tickBedWatcher(EntityPlayerMP p,long now) {
+        UUID id=p.getUniqueID();
+        EntityWatcher old=bedWatchers.get(id);
+        if(!p.isPlayerSleeping() || p.dimension!=0) {
+            endBedWatcher(p);
+            return;
+        }
+        if(old!=null) {
+            if(old.isDead || now>=old.getEntityData().getLong("veilBedUntil"))
+                endBedWatcher(p);
+            return;
+        }
+        Long when=pendingSleep.get(id);
+        if(when==null || now<when)return;
+        pendingSleep.remove(id);
+        WorldServer w=(WorldServer)p.world;
+        for(int attempt=0;attempt<24;attempt++) {
+            BlockPos hint=p.getPosition().add(rng.nextInt(19)-9,0,rng.nextInt(19)-9);
+            if(!w.isBlockLoaded(hint,false))continue;
+            BlockPos at=w.getHeight(hint);
+            double dist=at.distanceSq(p.getPosition());
+            if(dist<16 || dist>100 ||
+                    !w.isAirBlock(at) || !w.isAirBlock(at.up()) ||
+                    !w.getBlockState(at.down()).isFullCube())continue;
+            EntityWatcher entity=new EntityWatcher(w);
+            double dx=p.posX-(at.getX()+.5),dz=p.posZ-(at.getZ()+.5);
+            float yaw=(float)Math.toDegrees(Math.atan2(-dx,dz));
+            entity.setLocationAndAngles(at.getX()+.5,at.getY(),at.getZ()+.5,yaw,0);
+            entity.getEntityData().setBoolean("veilBedWatcher",true);
+            entity.getEntityData().setLong("veilBedUntil",now+75);
+            if(w.spawnEntity(entity)) {
+                bedWatchers.put(id,entity);
+                return;
+            }
+        }
+    }
+
+    public void endBedWatcher(EntityPlayerMP p) {
+        UUID id=p.getUniqueID();
+        pendingSleep.remove(id);
+        EntityWatcher e=bedWatchers.remove(id);
+        if(e!=null && !e.isDead)e.setDead();
+    }
+
     public void attemptAppearance(EntityPlayerMP p,StoryData d) {
         if (watcher!=null && !watcher.isDead) return;
         if (p.dimension!=0 || !d.clock.active()) return;
