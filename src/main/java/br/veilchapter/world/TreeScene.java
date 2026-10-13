@@ -36,23 +36,17 @@ public final class TreeScene {
     public static final BlockPos CHEST = new BlockPos(0,5,0);
     private static List<Placement> plan;
     private static int[] planCounts;
-    // Eight separated speeches throughout the 150-second growth, no overlapping dialogue.
-    private static final int[] VOICE_SECONDS = {9, 28, 46, 64, 82, 101, 119, 136};
-    private static final int[] VOICE_DURATION_TICKS = {92, 124, 127, 68, 104, 63, 116, 98};
+    // Four COMPLETE spoken passages spaced across the 150-second growth ritual.
+    private static final int[] VOICE_SECONDS = {12, 49, 88, 126};
+    private static final int[] VOICE_DURATION_TICKS = {208, 187, 158, 206};
     private static final net.minecraft.util.SoundEvent[] VOICES = {
         VeilSounds.WATCHER_VOICE_01, VeilSounds.WATCHER_VOICE_02,
-        VeilSounds.WATCHER_VOICE_03, VeilSounds.WATCHER_VOICE_04,
-        VeilSounds.WATCHER_VOICE_05, VeilSounds.WATCHER_VOICE_06,
-        VeilSounds.WATCHER_VOICE_07, VeilSounds.WATCHER_VOICE_08
+        VeilSounds.WATCHER_VOICE_03, VeilSounds.WATCHER_VOICE_04
     };
     private static final String[] SUBTITLES = {
         "Até que enfim... Eu estava esperando por você.",
-        "Tudo parece estranho... mas eu confio em você para salvá-lo.",
-        "Tudo foi perdido naquela vila.",
-        "Sua vida, seus projetos, seus sonhos...",
-        "Tudo foi destruído... e eu não pude fazer nada.",
-        "Não há esperanças naquele lugar.",
-        "Tudo que tenta crescer ali logo morre...",
+        "Tudo foi perdido naquela vila... tudo foi destruído.",
+        "E eu... eu não pude fazer nada.",
         "Mas agora... nós temos você."
     };
     private static final DreadSystem RESTORER = new DreadSystem();
