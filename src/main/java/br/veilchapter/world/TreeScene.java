@@ -102,13 +102,14 @@ public final class TreeScene {
         // The closer observation point also keeps most of the crown within normal view distance.
         if(elapsed<400 && elapsed%10==0){
             int idx=(int)(elapsed/10);
-            if(idx<25){
-                int cx=(idx%5)-2, cz=(idx/5)-2;
+            if(idx<9){
+                int cx=(idx%3)-1, cz=(idx/3)-1;
                 w.getChunkProvider().provideChunk(cx,cz);
             }
         }
 
         ritualVoices(p,w,elapsed,d);
+        ritualWoodSounds(w,elapsed);
         if (elapsed%20==0)clearExpiredWatchers(w);
 
         // Keep the tree in view from the ground. Movement is never locked.
@@ -155,6 +156,22 @@ public final class TreeScene {
         if(d.treeStage==2){
             if(elapsed%36==0 && elapsed<TreeRitualPacing.TOTAL_TICKS+240)
                 p.sendStatusMessage(new TextComponentString("Agora, entre."),true);
+        }
+    }
+
+    /** Nine sparse, server-authoritative spatial creaks. No bird sounds or music. */
+    private void ritualWoodSounds(WorldServer world,long elapsed) {
+        final int[] seconds={22,29,43,51,78,87,111,124,131};
+        final int[] x={-5,6,-9,7,13,-11,9,-8,3};
+        final int[] z={10,8,7,-4,2,-2,0,5,-7};
+        final int[] level={6,7,12,15,18,19,23,24,23};
+        for(int i=0;i<seconds.length;i++){
+            if(elapsed!=seconds[i]*20L)continue;
+            BlockPos speaker=new BlockPos(x[i],4+level[i],z[i]);
+            if(!world.isBlockLoaded(speaker,false))return;
+            world.playSound(null,speaker,VeilSounds.TREE_CREAKS[i%6],
+                SoundCategory.BLOCKS,1.35F,0.94F+(i%3)*.045F);
+            return;
         }
     }
 
@@ -302,138 +319,174 @@ public final class TreeScene {
         if(used.add(pos))out.add(new Placement(pos,state));
     }
 
-    /**
-     * Four contiguous chapters: exposed roots, lighter trunk/major branches,
-     * crown outline, and sparse crown detail. The old tree used ~69k blocks,
-     * roughly 50k of them leaves. This shape avoids most invisible interiors.
-     */
+
+    /** The same four narrative stages, but a detailed 30-block-high asymmetric tree. */
     private static synchronized List<Placement> plan() {
         if(plan!=null)return plan;
         List<Placement> roots=new ArrayList<>();
         List<Placement> timber=new ArrayList<>();
         List<Placement> crown=new ArrayList<>();
-        List<Placement> detail=new ArrayList<>();
+        List<Placement> details=new ArrayList<>();
         Set<BlockPos> used=new HashSet<>();
         IBlockState log=Blocks.LOG.getDefaultState();
         IBlockState leaves=Blocks.LEAVES.getDefaultState()
-                .withProperty(net.minecraft.block.BlockLeaves.DECAYABLE,false)
-                .withProperty(net.minecraft.block.BlockLeaves.CHECK_DECAY,false);
+            .withProperty(net.minecraft.block.BlockLeaves.DECAYABLE,false)
+            .withProperty(net.minecraft.block.BlockLeaves.CHECK_DECAY,false);
 
-        // Walkable oak chamber floor; remains protected from every build/update.
-        for(int x=-5;x<=5;x++)for(int z=-5;z<=5;z++)
-            if(x*x+z*z<=25)addUnique(roots,used,new BlockPos(x,4,z),Blocks.PLANKS.getDefaultState());
-
-        // Exposed radial roots, avoiding the southern doorway (x=-2..2, z>0).
+        // Walkable floor, darkness within a real hollow, chest always at (0,5,0).
+        for(int x=-4;x<=4;x++)for(int z=-4;z<=4;z++){
+            if(x*x+z*z<=16)addUnique(roots,used,new BlockPos(x,4,z),
+                    Blocks.PLANKS.getDefaultState());
+        }
+        // Radial exposed roots: limited to ~13 blocks so their silhouette is readable.
         for(int arm=0;arm<8;arm++){
-            double ang=arm*Math.PI/4.0+.11;
-            for(int t=6;t<=25;t++){
-                double r=2.5-1.5*((t-6)/19.0);
-                double centerX=Math.cos(ang)*t;
-                double centerZ=Math.sin(ang)*t;
-                double height=4+(t<14?2:1);
-                for(int dx=-3;dx<=3;dx++)for(int dz=-3;dz<=3;dz++)
-                    for(int dy=-1;dy<=2;dy++){
-                        int x=(int)Math.round(centerX)+dx,z=(int)Math.round(centerZ)+dz;
-                        if(z>=0 && z<=30 && Math.abs(x)<=3)continue;
-                        if(dx*dx+dz*dz+dy*dy*.9>r*r)continue;
-                        addUnique(roots,used,new BlockPos(x,(int)Math.round(height)+dy,z),log);
+            double angle=arm*Math.PI/4.0+0.16;
+            for(int t=3;t<=13;t++){
+                int cx=(int)Math.round(Math.cos(angle)*t);
+                int cz=(int)Math.round(Math.sin(angle)*t);
+                double radius=t<6?1.6:t<10?1.2:0.7;
+                int cy=(t<8?6:5);
+                for(int x=cx-2;x<=cx+2;x++)for(int z=cz-2;z<=cz+2;z++)
+                    for(int y=cy-1;y<=cy+1;y++){
+                        if((x-cx)*(x-cx)+(z-cz)*(z-cz)+
+                           (y-cy)*(y-cy)*1.5>radius*radius)continue;
+                        if(Math.abs(x)<=2 && z>=0 && z<=16 && y>=5 && y<=8)continue;
+                        addUnique(roots,used,new BlockPos(x,y,z),log);
                     }
             }
         }
-        // The lower trunk is thick and forms the dark hollow and the root connection.
-        for(int y=0;y<=10;y++)for(int x=-20;x<=20;x++)for(int z=-20;z<=20;z++)
-            if(TreeMath.trunk(x,y,z))addUnique(roots,used,new BlockPos(x,4+y,z),log);
-
-        Random random=new Random(134865L);
-        for(int i=0;i<260;i++){
-            int x=random.nextInt(97)-48,z=random.nextInt(97)-48;
-            if(x*x+z*z<25*25 || x*x+z*z>42*42)continue;
-            addUnique(roots,used,new BlockPos(x,4,z),
-                    Blocks.TALLGRASS.getDefaultState().withProperty(
-                        net.minecraft.block.BlockTallGrass.TYPE,
-                        net.minecraft.block.BlockTallGrass.EnumType.GRASS));
+        // Main lower trunk, 7 blocks wide on average, hollow for a four-block-high room.
+        for(int level=0;level<=7;level++){
+            double radius=level<3?4.1:3.65;
+            for(int x=-5;x<=5;x++)for(int z=-5;z<=5;z++){
+                double cx=0.23*Math.sin(level*.32),cz=0.19*Math.cos(level*.30);
+                double dx=x-cx,dz=z-cz;
+                if(dx*dx+dz*dz>radius*radius)continue;
+                if(level>=1 && level<=4 && dx*dx+dz*dz<=2.55*2.55)continue;
+                if(level>=1 && level<=4 && z>=0 && Math.abs(x)<=2)continue;
+                int y=4+level;
+                if(Math.abs(x)<=2 && z>=1 && z<=15 && y>=5 && y<=8)continue;
+                addUnique(roots,used,new BlockPos(x,y,z),log);
+            }
+        }
+        // Thin irregular upper trunk, reaching at most 29 blocks above the grass.
+        for(int level=8;level<=28;level++){
+            double centerX=0.7*Math.sin(level*.17);
+            double centerZ=0.5*Math.cos(level*.14);
+            double radius=Math.max(1.35,3.6-(level-8)*.115);
+            for(int x=-5;x<=5;x++)for(int z=-5;z<=5;z++){
+                double dx=x-centerX,dz=z-centerZ;
+                if(dx*dx+dz*dz<=radius*radius)
+                    addUnique(timber,used,new BlockPos(x,4+level,z),log);
+            }
         }
 
-        // Trunk retains its external bark and a narrow core, without dense invisible timber.
-        for(int y=11;y<83;y++)for(int x=-20;x<=20;x++)for(int z=-20;z<=20;z++){
-            if(!TreeMath.trunk(x,y,z))continue;
-            double dx=x-TreeMath.centerX(y),dz=z-TreeMath.centerZ(y);
-            double radius=TreeMath.trunkRadius(y);
-            double sq=dx*dx+dz*dz;
-            if(sq<(radius-2.4)*(radius-2.4) && sq>2.0*2.0)continue;
-            addUnique(timber,used,new BlockPos(x,4+y,z),log);
-        }
-        // Long structural branches give the crown a believable silhouette.
-        for(int arm=0;arm<9;arm++){
-            double angle=arm*Math.PI*2/9.0;
-            int initialY=57+(arm%4)*5;
-            for(int t=0;t<=29;t++){
-                double reach=TreeMath.trunkRadius(initialY)-1+t*.78;
-                int cx=(int)Math.round(TreeMath.centerX(initialY)+Math.cos(angle)*reach);
-                int cz=(int)Math.round(TreeMath.centerZ(initialY)+Math.sin(angle)*reach);
-                int cy=4+initialY+(int)Math.round(t*.36-Math.pow(t/16.0,2));
-                int radius=t<10?2:t<20?1:0;
+        // Eleven long and sweeping, yet affordable, structural branches.
+        for(int arm=0;arm<11;arm++){
+            double angle=arm*Math.PI*2.0/11.0+0.11;
+            int startLevel=12+(arm%6)*2;
+            int length=13+(arm%4)*2; // 13–19 block branches
+            for(int t=0;t<=length;t++){
+                double reach=1.8+t*0.98;
+                int cx=(int)Math.round(Math.cos(angle)*reach+0.5*Math.sin(startLevel*.16));
+                int cz=(int)Math.round(Math.sin(angle)*reach);
+                int level=startLevel+(int)Math.round(t*.36-t*t*.013);
+                level=Math.max(10,Math.min(27,level));
+                int radius=t<6?1:0;
                 for(int dx=-radius;dx<=radius;dx++)for(int dz=-radius;dz<=radius;dz++)
-                    for(int dy=-radius;dy<=radius;dy++)
-                        if(dx*dx+dy*dy+dz*dz<=radius*radius+1)
-                            addUnique(timber,used,new BlockPos(cx+dx,cy+dy,cz+dz),log);
+                    for(int dy=-radius;dy<=radius;dy++){
+                        if(dx*dx+dz*dz+dy*dy>radius*radius+1)continue;
+                        addUnique(timber,used,new BlockPos(cx+dx,4+level+dy,cz+dz),log);
+                    }
             }
+            // Uneven leaf lobes at middle and extremities, not a spherical canopy.
+            for(int lobe=0;lobe<3;lobe++){
+                int t=(lobe==0?length-6:lobe==1?length-2:length);
+                double reach=1.8+t*.98;
+                int cx=(int)Math.round(Math.cos(angle)*reach+0.5*Math.sin(startLevel*.16));
+                int cz=(int)Math.round(Math.sin(angle)*reach);
+                int level=startLevel+(int)Math.round(t*.36-t*t*.013);
+                int rx=3+(arm+lobe)%3,rz=3+(arm*2+lobe)%3;
+                int ry=2+(arm+lobe)%2;
+                canopyLobe(crown,details,used,leaves,cx,level,cz,rx,ry,rz);
+            }
+        }
+        // Two extra high clumps to make the top uneven but never above 30 blocks.
+        canopyLobe(crown,details,used,leaves,0,25,0,5,4,4);
+        canopyLobe(crown,details,used,leaves,-2,25,2,3,4,4);
+
+        // Sparing undergrowth; avoid the route to the chamber.
+        Random random=new Random(134865L);
+        for(int i=0;i<110;i++){
+            int x=random.nextInt(55)-27,z=random.nextInt(55)-27;
+            if(x*x+z*z<16*16 || x*x+z*z>27*27)continue;
+            if(Math.abs(x)<=2 && z>=0 && z<=20)continue;
+            addUnique(roots,used,new BlockPos(x,4,z),
+                Blocks.TALLGRASS.getDefaultState().withProperty(
+                    net.minecraft.block.BlockTallGrass.TYPE,
+                    net.minecraft.block.BlockTallGrass.EnumType.GRASS));
         }
 
-        // Thin outside leaves are the visible crown; a minority of internal leaves follow later.
-        for(int y=62;y<110;y++){
-            double rx=28.0*Math.sqrt(Math.max(0,1-Math.pow((y-86.0)/25.0,2)));
-            double rz=25.0*Math.sqrt(Math.max(0,1-Math.pow((y-86.0)/25.0,2)));
-            if(rx<1 || rz<1)continue;
-            for(int x=-31;x<=31;x++)for(int z=-31;z<=31;z++){
-                if(!TreeMath.foliage(x,y,z))continue;
-                if(((x*73+y*13+z*19)&15)>=11)continue;
-                double dx=x-TreeMath.centerX(78),dz=z-TreeMath.centerZ(78);
-                double ellipse=dx*dx/(rx*rx)+dz*dz/(rz*rz);
-                BlockPos at=new BlockPos(x,4+y,z);
-                if(ellipse>=.77) addUnique(crown,used,at,leaves);
-                else if(((x*37+z*17+y*11)&7)<2) addUnique(detail,used,at,leaves);
-            }
-        }
-        planCounts=new int[]{roots.size(),timber.size(),crown.size(),detail.size()};
-        List<Placement> out=new ArrayList<>(TreeRitualPacing.total(planCounts));
-        out.addAll(roots);out.addAll(timber);out.addAll(crown);out.addAll(detail);
-        plan=out;
-        if(VeilMod.LOG!=null)VeilMod.LOG.info("Tree Ritual stages: roots={}, timber={}, crown={}, details={}, total={}",
-            planCounts[0],planCounts[1],planCounts[2],planCounts[3],out.size());
-        return plan;
+        planCounts=new int[]{roots.size(),timber.size(),crown.size(),details.size()};
+        List<Placement> result=new ArrayList<>(TreeRitualPacing.total(planCounts));
+        result.addAll(roots);result.addAll(timber);result.addAll(crown);result.addAll(details);
+        plan=result;
+        VeilMod.LOG.info("TREE_SMALL_BLUEPRINT: roots={}, trunk={}, leaves={}, detail={}, total={}",
+                planCounts[0],planCounts[1],planCounts[2],planCounts[3],result.size());
+        return result;
     }
-    /**
-     * Production CI verifies the ACTUAL block plan after Forge has registered blocks.
-     * This does not create chunks, affect player worlds, or expose debug gameplay.
-     */
+
+    private static void canopyLobe(List<Placement> crown,List<Placement> detail,
+            Set<BlockPos> used,IBlockState leaves,int cx,int cy,int cz,
+            int rx,int ry,int rz){
+        for(int x=cx-rx;x<=cx+rx;x++)for(int z=cz-rz;z<=cz+rz;z++)
+            for(int y=Math.max(10,cy-ry);y<=Math.min(29,cy+ry);y++){
+                double dx=(x-cx)/(double)rx,dy=(y-cy)/(double)ry,dz=(z-cz)/(double)rz;
+                double irregularity=1.0+.10*Math.sin(x*.84+z*.29+y*.35);
+                double d=dx*dx+dy*dy+dz*dz;
+                if(d>irregularity)continue;
+                int hash=(x*71+y*41+z*23)^((x*z+31*y)*17);
+                // Air gaps prevent a dense green sphere. Roughly 35% internal foliage.
+                if((hash&31)>=(d>.55?26:13))continue;
+                if(d>.55)addUnique(crown,used,new BlockPos(x,4+y,z),leaves);
+                else addUnique(detail,used,new BlockPos(x,4+y,z),leaves);
+            }
+    }
+
+    /** Run against the real Forge blocks during server smoke tests. */
     public static void verifyPlanForCI(){
         List<Placement> operations=plan();
-        int[] allowedTicks={500,800,800,500};
-        for(int i=0;i<4;i++){
-            if(planCounts[i] > allowedTicks[i]*TreeRitualPacing.MAX_PLACEMENTS_PER_TICK)
-                throw new IllegalStateException("Ritual phase "+i+" exceeds its 150s budget: "+planCounts[i]);
-        }
-        if(operations.size()>50000 || operations.size()<15000)
-            throw new IllegalStateException("Unexpectedly expensive or empty tree: "+operations.size());
-        if(TreeRitualPacing.target(TreeRitualPacing.TOTAL_TICKS,planCounts)!=operations.size())
-            throw new IllegalStateException("Tree does not finish in its schedule");
+        int[] phaseTicks={500,800,800,500};
+        if(operations.size()<1100 || operations.size()>14000)
+            throw new IllegalStateException("Unreasonable small-tree size: "+operations.size());
         Set<BlockPos> unique=new HashSet<>();
+        int leavesCount=0,woodCount=0;
         for(Placement op:operations){
-            if(!unique.add(op.pos))throw new IllegalStateException("Duplicate tree coordinate "+op.pos);
-            if(op.state.getBlock() instanceof net.minecraft.block.BlockLeaves &&
-                    op.state.getValue(net.minecraft.block.BlockLeaves.DECAYABLE))
-                throw new IllegalStateException("Ritual crown leaves may decay at "+op.pos);
-
-            // 4-block-high walkway leading from the south into the center.
-            if(op.pos.getX()>=-2 && op.pos.getX()<=2 &&
-               op.pos.getZ()>=1 && op.pos.getZ()<=15 &&
-               op.pos.getY()>=5 && op.pos.getY()<=8)
-                throw new IllegalStateException("Entrance obstructed at "+op.pos);
+            if(!unique.add(op.pos))throw new IllegalStateException("Duplicate placement: "+op.pos);
+            if(op.pos.getY()>33)throw new IllegalStateException("Tree exceeds 30 block height: "+op.pos);
+            if(op.pos.getY()<4)throw new IllegalStateException("Tree breaks ground: "+op.pos);
+            if(op.state.getBlock() instanceof net.minecraft.block.BlockLeaves){
+                leavesCount++;
+                if(op.state.getValue(net.minecraft.block.BlockLeaves.DECAYABLE))
+                    throw new IllegalStateException("Crown may decay: "+op.pos);
+            }
+            if(op.state.getBlock()==Blocks.LOG)woodCount++;
+            if(Math.abs(op.pos.getX())<=2 && op.pos.getZ()>=1 && op.pos.getZ()<=15
+                    && op.pos.getY()>=5 && op.pos.getY()<=8)
+                throw new IllegalStateException("Entrance blocked: "+op.pos);
+            if(op.pos.equals(CHEST))throw new IllegalStateException("Chest position blocked");
         }
-        VeilMod.LOG.info("TREE_RITUAL_PLAN_OK: stage blocks [{}, {}, {}, {}], total={}, budget={}",
-                planCounts[0],planCounts[1],planCounts[2],planCounts[3],
-                operations.size(),TreeRitualPacing.MAX_PLACEMENTS_PER_TICK);
+        if(leavesCount<300 || woodCount<250)
+            throw new IllegalStateException("Missing major tree geometry");
+        for(int i=0;i<4;i++){
+            if(planCounts[i]>phaseTicks[i]*TreeRitualPacing.MAX_PLACEMENTS_PER_TICK)
+                throw new IllegalStateException("Too many blocks in phase "+i);
+        }
+        if(TreeRitualPacing.target(TreeRitualPacing.TOTAL_TICKS,planCounts)!=operations.size())
+            throw new IllegalStateException("Tree cannot finish within schedule");
+        VeilMod.LOG.info("TREE_RITUAL_PLAN_OK: treeHeight<=30, leaves={}, wood={}, stages=[{},{},{},{}], total={}, budget={}",
+                leavesCount,woodCount,planCounts[0],planCounts[1],planCounts[2],
+                planCounts[3],operations.size(),TreeRitualPacing.MAX_PLACEMENTS_PER_TICK);
     }
 
     private static class FixedPoint implements ITeleporter {
