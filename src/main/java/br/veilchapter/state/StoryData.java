@@ -29,6 +29,7 @@ public class StoryData extends WorldSavedData {
     public int treeStage;
     public long treeStarted;
     public int treeCursor;
+    public int treeWatcherFlags;
     public int originDim;
     public double originX, originY, originZ;
     public float originYaw, originPitch;
@@ -58,7 +59,7 @@ public class StoryData extends WorldSavedData {
         awakeningStartedTick=tag.getLong("awakeningStartedTick"); treeActive=tag.getBoolean("treeActive");
         treeTriggerConsumed=tag.getBoolean("treeTriggerConsumed"); returnCommitted=tag.getBoolean("returnCommitted");
         bookPending=tag.getBoolean("bookPending");treeStage=tag.getInteger("treeStage");
-        treeStarted=tag.getLong("treeStarted");treeCursor=tag.getInteger("treeCursor");
+        treeStarted=tag.getLong("treeStarted");treeCursor=tag.getInteger("treeCursor");treeWatcherFlags=tag.getInteger("treeWatcherFlags");
         originDim=tag.getInteger("originDim");originX=tag.getDouble("originX");
         originY=tag.getDouble("originY");originZ=tag.getDouble("originZ");
         originYaw=tag.getFloat("originYaw");originPitch=tag.getFloat("originPitch");
@@ -82,7 +83,7 @@ public class StoryData extends WorldSavedData {
         tag.setBoolean("treeActive",treeActive);tag.setBoolean("treeTriggerConsumed",treeTriggerConsumed);
         tag.setBoolean("returnCommitted",returnCommitted);tag.setBoolean("bookPending",bookPending);
         tag.setInteger("treeStage",treeStage);tag.setLong("treeStarted",treeStarted);
-        tag.setInteger("treeCursor",treeCursor);tag.setInteger("originDim",originDim);
+        tag.setInteger("treeCursor",treeCursor);tag.setInteger("treeWatcherFlags",treeWatcherFlags);tag.setInteger("originDim",originDim);
         tag.setDouble("originX",originX);tag.setDouble("originY",originY);tag.setDouble("originZ",originZ);
         tag.setFloat("originYaw",originYaw);tag.setFloat("originPitch",originPitch);
         NBTTagList mobs=new NBTTagList(); for(NBTTagCompound n:suspendedMobs)mobs.appendTag(n.copy()); tag.setTag("mobs",mobs);
