@@ -36,6 +36,29 @@ public final class OfflineCoreTests {
         check(TreeMath.trunk(10,0,0), "roots");
         check(TreeMath.foliage(0,85,0), "foliage");
         check(!TreeMath.foliage(40,85,0), "crown bounds");
+
+        // Ritual stages are deterministic, monotonic and never bypass the protected finale.
+        int[] stageSizes={5817,10376,11176,9213};
+        int sum=TreeRitualPacing.total(stageSizes);
+        check(sum==36582,"tree stage inventory");
+        check(TreeRitualPacing.MAX_PLACEMENTS_PER_TICK<=24,"per-tick scene budget");
+        check(TreeRitualPacing.target(0,stageSizes)==0,"quiet phase");
+        check(TreeRitualPacing.target(399,stageSizes)==0,"wait for roots");
+        check(TreeRitualPacing.target(900,stageSizes)==stageSizes[0],"roots completed");
+        check(TreeRitualPacing.target(1700,stageSizes)==stageSizes[0]+stageSizes[1],"trunk completed");
+        check(TreeRitualPacing.target(2500,stageSizes)==sum-stageSizes[3],"crown outline completed");
+        check(TreeRitualPacing.target(3000,stageSizes)==sum,"all detail completed");
+        check(TreeRitualPacing.target(9000,stageSizes)==sum,"do not overshoot scene");
+        int previous=0;
+        for(int t=0;t<=3300;t++){
+            int value=TreeRitualPacing.target(t,stageSizes);
+            check(value>=previous && value<=sum,"monotonic tree scheduling at tick "+t);
+            previous=value;
+        }
+        check(stageSizes[0] <= 500 * TreeRitualPacing.MAX_PLACEMENTS_PER_TICK, "root budget");
+        check(stageSizes[1] <= 800 * TreeRitualPacing.MAX_PLACEMENTS_PER_TICK, "trunk budget");
+        check(stageSizes[2] <= 800 * TreeRitualPacing.MAX_PLACEMENTS_PER_TICK, "crown budget");
+        check(stageSizes[3] <= 500 * TreeRitualPacing.MAX_PLACEMENTS_PER_TICK, "detail budget");
         System.out.println("PASS: " + assertions + " verificacoes offline (Java puro)");
     }
 }
