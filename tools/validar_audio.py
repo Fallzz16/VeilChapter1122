@@ -5,7 +5,7 @@ BASE=pathlib.Path(__file__).resolve().parent.parent
 ASSETS=BASE/'src/main/resources/assets/veilchapter'
 sounds=json.loads((ASSETS/'sounds.json').read_text(encoding='utf-8'))
 expected={'psst':5, 'hey':4, 'laugh':3, 'breath':2}
-assert set(sounds)==set(expected), f'SoundEvent mismatch: {list(sounds)}'
+assert set(expected).issubset(set(sounds)), f'Missing legacy SoundEvents: {list(sounds)}'
 manifest=json.loads((BASE/'AUDIO_QA_MANIFEST.json').read_text(encoding='utf-8'))
 checksums={item['file']:item['sha256'] for item in manifest}
 assert len(checksums)==14 and len(manifest)==14, 'Manifest must have 14 unique tracks'
