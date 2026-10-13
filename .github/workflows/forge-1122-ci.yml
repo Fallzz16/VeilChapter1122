@@ -71,6 +71,7 @@ jobs:
           [[ -f "${jars[0]}" ]] || { echo 'No JAR generated'; exit 1; }
           jar tf "${jars[0]}" | tee jar_contents.txt
           grep -qx 'br/veilchapter/VeilMod.class' jar_contents.txt
+          grep -qx 'br/veilchapter/core/TreeRitualPacing.class' jar_contents.txt
           grep -qx 'mcmod.info' jar_contents.txt
           grep -qx 'assets/veilchapter/textures/entity/watcher.png' jar_contents.txt
           python3 - <<'PY'
@@ -94,7 +95,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: veilchapter-1122-v0.2.5-AUDIO3D-NOT-GAMEPLAY-TESTED
+          name: veilchapter-v0.2.6-TREE-RITUAL-ALPHA-NOT-CLIENT-TESTED
           path: build/libs/*.jar
           if-no-files-found: error
       - name: Preserve diagnostics

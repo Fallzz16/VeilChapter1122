@@ -38,9 +38,9 @@ public final class OfflineCoreTests {
         check(!TreeMath.foliage(40,85,0), "crown bounds");
 
         // Ritual stages are deterministic, monotonic and never bypass the protected finale.
-        int[] stageSizes={5817,10376,11176,9213};
+        int[] stageSizes={5855,10376,11176,9213};
         int sum=TreeRitualPacing.total(stageSizes);
-        check(sum==36582,"tree stage inventory");
+        check(sum==36620,"real tree stage inventory verified in Forge server");
         check(TreeRitualPacing.MAX_PLACEMENTS_PER_TICK<=24,"per-tick scene budget");
         check(TreeRitualPacing.target(0,stageSizes)==0,"quiet phase");
         check(TreeRitualPacing.target(399,stageSizes)==0,"wait for roots");

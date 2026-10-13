@@ -1,3 +1,5 @@
+> **ATUALIZAÇÃO 0.2.6 — TREE RITUAL:** veja [o guia atualizado de testes e limitações](TREE_RITUAL_v0.2.6_QA_PTBR.md). A versão anterior descrita abaixo permanece como histórico. A v0.2.6 foi compilada com Forge e seu plano de 36.620 blocos foi validado num servidor de produção; efeitos visuais e FPS no cliente ainda precisam de teste.
+    
 # Veil Chapter — Minecraft Forge 1.12.2
 
 **Status em 12/10/2026: ALPHA COMPILADA E TESTADA NA INICIALIZAÇÃO DE SERVIDOR.**

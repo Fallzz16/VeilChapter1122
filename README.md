@@ -2,34 +2,34 @@
 
 **Minecraft Java 1.12.2 / Forge 14.23.5.2859 / Java 8**
 
-> **Status: v0.2.5 AUDIO 3D ALPHA, compilation verified and a production Forge 1.12.2 server started successfully with the mod. Client-side spatial audio listening and seven-day gameplay are NOT yet tested. Use a throwaway test world.**
+> **Latest: v0.2.6 TREE RITUAL alpha. Forge build and production-server geometry checks have been implemented. In-client visual, FPS, and full seven-day gameplay testing is still required; use a separate test world.**
 
-## Download latest compiled mod
+## Latest downloads and build results
 
-- **[Veil Chapter v0.2.5 — GitHub Actions compiled JAR artifact](https://github.com/Fallzz16/VeilChapter1122/actions/runs/38326793703)** — choose `veilchapter-1122-v0.2.5-AUDIO3D-NOT-GAMEPLAY-TESTED` under Artifacts, unzip and put only the JAR in your Minecraft 1.12.2 Forge `mods` folder.
-- [Audio 3D playtest instructions in Portuguese](LEIA_PRIMEIRO_AUDIO.md)
-- [Original design and current limitations in Portuguese](README_PTBR.md)
+- [Latest automated Forge build and JAR artifact](https://github.com/Fallzz16/VeilChapter1122/actions/workflows/forge-1122-ci.yml)
+- [Latest production Forge server startup + tree plan verification](https://github.com/Fallzz16/VeilChapter1122/actions/workflows/forge-production-smoke.yml)
+- [Tree Ritual v0.2.6 — technical QA and playtest in Portuguese](TREE_RITUAL_v0.2.6_QA_PTBR.md)
+- [Audio 3D controls, fades and source details](LEIA_PRIMEIRO_AUDIO.md)
+- [Project overview in Portuguese](README_PTBR.md)
 
-## Evidence
+The compiled mod file is named `VeilChapter1122-0.2.6-tree-ritual.jar`. Unzip the GitHub Actions artifact and put only this JAR in a Minecraft 1.12.2 Forge `mods` folder, replacing the older version. Do not put source ZIPs there.
 
-- [14 decoded mono Vorbis OGG files verified by manifest SHA-256 + Forge build/reobfuscation + JAR content checks](https://github.com/Fallzz16/VeilChapter1122/actions/runs/38326793703)
-- [Real production Forge server boot with v0.2.5 installed in mods](https://github.com/Fallzz16/VeilChapter1122/actions/runs/38326817375)
+## Tree Ritual 2.0
 
-## Audio playback tests
+The protected tree scene now lasts around 150 seconds, revealing roots, trunk and branches, the crown silhouette and details. Construction is capped at 24 block operations per tick. The real tree blueprint was validated in a production Forge 1.12.2 server: 36,620 unique blocks, 4-stage timing budget and unobstructed interior approach.
 
-Enable cheats in a new test world:
+Three marked, nonviolent Watcher appearances and Portuguese actionbar messages accompany the ritual; scene sounds use the pre-existing 14 mono 3D OGG recordings.
+
+## Test
+
+After making a backup, enable `B:enableTreeSequence=true` in `config/veilchapter.cfg`, restart Minecraft, then in a throwaway world with cheats:
 
 ```text
-/veiltest audio psst left
-/veiltest audio psst right
-/veiltest audio hey behind
-/veiltest audio laugh front
-/veiltest audio breath right
-/veiltest psst
+/veiltest day 7
+/veiltest tree
+/veilstatus
 ```
 
-All 14 sounds are stored as mono OGG and are played by positional Minecraft world coordinates. Long clips have pre-rendered fades to avoid abrupt beginnings and endings. This is not a headphone stereo track; Minecraft's OpenAL performs spatialization.
+Check growth, FPS, how much of the crown is visible from the ground, the three apparitions, chest/book return, and save/resume. Render distance can still clip the top of a 110-block tree; the new viewpoint helps but cannot override Minecraft's render-distance limits.
 
-Known limits: no acoustic wall occlusion simulation; true client perceived audio still requires an actual player's listening test. Do not enable experimental dimension, destructive fires, stasis or teleports on important worlds.
-
-Dynamic Lights remains external; it is not bundled.
+**Only the Forge server startup and plan calculation are automated. Client-side gameplay/rendering requires a real player test.**
