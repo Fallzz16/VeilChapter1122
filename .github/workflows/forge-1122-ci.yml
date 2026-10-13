@@ -60,6 +60,8 @@ jobs:
         run: python3 tools/validar_stalking.py | tee stalking_qa.log
       - name: Verify entity assets, textures and localization
         run: python3 tools/validar_entities.py | tee entities_qa.log
+      - name: Validate GeckoLib bone rigs, timeline and PNG decode
+        run: python3 tools/validar_gecko_rigs.py | tee gecko_qa.log
       - name: Prepare Gradle wrapper
         run: bash tools/preparar_mdk.sh
       - name: Compile and reobfuscate mod
@@ -100,11 +102,12 @@ jobs:
           PY
           python3 tools/validar_no_tree.py --jar 2>&1 | tee no_tree_jar_qa.log
           python3 tools/validar_entities.py --jar 2>&1 | tee entities_jar_qa.log
-      - name: Upload standalone installable JAR
+          python3 tools/validar_gecko_rigs.py --jar 2>&1 | tee gecko_jar_qa.log
+      - name: Upload mod JAR (requires GeckoLib 3.0.31 alongside)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: veilchapter-v0.3.0-no-tree-standalone
+          name: veilchapter-v0.3.1-geckolib-required
           path: build/libs/*.jar
           if-no-files-found: ignore
       - name: Preserve diagnostics
@@ -121,6 +124,8 @@ jobs:
             stalking_qa.log
             entities_qa.log
             entities_jar_qa.log
+            gecko_qa.log
+            gecko_jar_qa.log
             no_tree_jar_qa.log
             jar_contents.txt
           if-no-files-found: ignore

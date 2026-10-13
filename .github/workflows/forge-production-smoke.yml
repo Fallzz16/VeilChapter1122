@@ -50,6 +50,11 @@ jobs:
           jars=(build/libs/VeilChapter1122-*.jar)
           test -f "${jars[0]}"
           cp "${jars[0]}" "$SERVER/mods/"
+          # GeckoLib3 is a separate runtime mod, not bundled into VeilChapter.
+          GECKO_DIR="$HOME/.gradle/caches/modules-2/files-2.1/software.bernie.geckolib/geckolib-forge-1.12.2/3.0.31"
+          GECKO_JAR="$(find "$GECKO_DIR" -type f -name '*.jar' -print -quit)"
+          test -n "$GECKO_JAR" && test -f "$GECKO_JAR"
+          cp "$GECKO_JAR" "$SERVER/mods/geckolib-forge-1.12.2-3.0.31.jar"
           test -f "$SERVER/forge-1.12.2-14.23.5.2859.jar"
           printf 'eula=true\n' > "$SERVER/eula.txt"
       - name: Boot actual Forge production server
