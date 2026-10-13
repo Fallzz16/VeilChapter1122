@@ -364,6 +364,35 @@ public final class TreeScene {
             planCounts[0],planCounts[1],planCounts[2],planCounts[3],out.size());
         return plan;
     }
+    /**
+     * Production CI verifies the ACTUAL block plan after Forge has registered blocks.
+     * This does not create chunks, affect player worlds, or expose debug gameplay.
+     */
+    public static void verifyPlanForCI(){
+        List<Placement> operations=plan();
+        int[] allowedTicks={500,800,800,500};
+        for(int i=0;i<4;i++){
+            if(planCounts[i] > allowedTicks[i]*TreeRitualPacing.MAX_PLACEMENTS_PER_TICK)
+                throw new IllegalStateException("Ritual phase "+i+" exceeds its 150s budget: "+planCounts[i]);
+        }
+        if(operations.size()>50000 || operations.size()<15000)
+            throw new IllegalStateException("Unexpectedly expensive or empty tree: "+operations.size());
+        if(TreeRitualPacing.target(TreeRitualPacing.TOTAL_TICKS,planCounts)!=operations.size())
+            throw new IllegalStateException("Tree does not finish in its schedule");
+        Set<BlockPos> unique=new HashSet<>();
+        for(Placement op:operations){
+            if(!unique.add(op.pos))throw new IllegalStateException("Duplicate tree coordinate "+op.pos);
+            // 4-block-high walkway leading from the south into the center.
+            if(op.pos.getX()>=-2 && op.pos.getX()<=2 &&
+               op.pos.getZ()>=1 && op.pos.getZ()<=15 &&
+               op.pos.getY()>=5 && op.pos.getY()<=8)
+                throw new IllegalStateException("Entrance obstructed at "+op.pos);
+        }
+        VeilMod.LOG.info("TREE_RITUAL_PLAN_OK: stage blocks [{}, {}, {}, {}], total={}, budget={}",
+                planCounts[0],planCounts[1],planCounts[2],planCounts[3],
+                operations.size(),TreeRitualPacing.MAX_PLACEMENTS_PER_TICK);
+    }
+
     private static class FixedPoint implements ITeleporter {
         private final double x,y,z;
         private final float targetYaw,targetPitch;
