@@ -3,7 +3,7 @@ name: Forge 1.12.2 - Build and QA
 on:
   workflow_dispatch:
   push:
-    branches: [main, dev/watcher-dual-voice-tree, dev/tree-30-atmosphere-v028, dev/tree-sealed-watcher-cinematic-v028, dev/early-days-watcher-stalking-v029]
+    branches: [main, dev/watcher-dual-voice-tree, dev/tree-30-atmosphere-v028, dev/tree-sealed-watcher-cinematic-v028, dev/early-days-watcher-stalking-v029, dev/no-tree-chapter1-v030]
     paths:
       - 'src/**'
       - 'build.gradle'
@@ -65,8 +65,8 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew --no-daemon --stacktrace clean build 2>&1 | tee build_log.txt
-      - name: Watcher Spatial Voice checks (5 speeches x 3 environments)
-        run: python3 tools/validar_watcher_spatial.py 2>&1 | tee watcher_spatial_qa.log
+      - name: Assert tree ritual removed
+        run: python3 tools/validar_no_tree.py 2>&1 | tee no_tree_qa.log
       - name: Inspect generated JAR
         shell: bash
         run: |
@@ -75,7 +75,8 @@ jobs:
           [[ -f "${jars[0]}" ]] || { echo 'No JAR generated'; exit 1; }
           jar tf "${jars[0]}" | tee jar_contents.txt
           grep -qx 'br/veilchapter/VeilMod.class' jar_contents.txt
-          grep -qx 'br/veilchapter/core/TreeRitualPacing.class' jar_contents.txt
+          ! grep -qx 'br/veilchapter/world/TreeScene.class' jar_contents.txt
+          ! grep -qx 'br/veilchapter/network/CinematicStatePacket.class' jar_contents.txt
           grep -qx 'mcmod.info' jar_contents.txt
           grep -qx 'assets/veilchapter/textures/entity/watcher.png' jar_contents.txt
           python3 - <<'PY'
@@ -95,12 +96,12 @@ jobs:
               assert {k:len(actual[k]["sounds"]) for k in ("psst","hey","laugh","breath")}=={"psst":5,"hey":4,"laugh":3,"breath":2}
           print("JAR_AUDIO_QA_PASS: all 14 legacy OGG assets intact and referenced.")
           PY
-          python3 tools/validar_watcher_spatial.py --jar 2>&1 | tee watcher_spatial_jar_qa.log
-      - name: Upload compiled JAR for media integration (NOT installable without 15 OGGs)
+          python3 tools/validar_no_tree.py --jar 2>&1 | tee no_tree_jar_qa.log
+      - name: Upload standalone installable JAR
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: veilchapter-v0.2.8-INCOMPLETE-AUDIO-FOR-PACKAGING
+          name: veilchapter-v0.3.0-no-tree-standalone
           path: build/libs/*.jar
           if-no-files-found: ignore
       - name: Preserve diagnostics
@@ -113,8 +114,8 @@ jobs:
             static_qa.log
             offline_qa.log
             audio_qa.log
-            watcher_spatial_qa.log
+            no_tree_qa.log
             stalking_qa.log
-            watcher_spatial_jar_qa.log
+            no_tree_jar_qa.log
             jar_contents.txt
           if-no-files-found: ignore

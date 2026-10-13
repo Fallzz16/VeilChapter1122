@@ -15,9 +15,8 @@ public final class VeilCommands extends CommandBase {
         StoryData d=StoryData.get(world);
         sender.sendMessage(new TextComponentString("[Veil] Dia="+d.clock.day()+
                 " iniciado="+d.clock.active()+" concluido="+d.clock.completed()+
-                " arvore="+d.treeActive+" livroPendente="+d.bookPending+
-                " arvoreEtapa="+d.treeStage+" blocosConstruidos="+d.treeCursor+
-                " aparicoesRitual="+Integer.bitCount(d.treeWatcherFlags&31)+
-                " criaturasEmEspera="+d.suspendedMobs.size()));
+                " criaturasEmEspera="+d.suspendedMobs.size()+
+                " proximoEventoTick="+d.nextEvent+
+                " arvoreRemovida=true"));
     }
 }
