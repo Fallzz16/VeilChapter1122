@@ -30,6 +30,8 @@ public final class ClearingAmbientSound extends MovingSound {
             donePlaying = true;
             return;
         }
+        // Keep the 150s original master, but duck it during the uninterrupted dialogue.
+        volume=ClientCinematicState.locked ? .19F : .72F;
         // The OGG's fade in/out and the Watcher's five ducking windows were mastered offline.
         // Audio length is 150s; no accidental replay while player waits for a delayed build.
         if (++ticks >= 3002) donePlaying = true;
