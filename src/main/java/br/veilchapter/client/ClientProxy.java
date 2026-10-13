@@ -15,6 +15,11 @@ public final class ClientProxy extends CommonProxy {
             ClientDayState.completed=packet.completed;
         });
     }
+    @Override public void acceptCinematicState(final br.veilchapter.network.CinematicStatePacket packet) {
+        net.minecraft.client.Minecraft.getMinecraft().addScheduledTask(() -> {
+            ClientCinematicState.locked=packet.locked;
+        });
+    }
     @Override public void preInit() {
         // Packet registration happens during VeilMod.preInit on both sides.
         RenderingRegistry.registerEntityRenderingHandler(EntityWatcher.class, new IRenderFactory<EntityWatcher>() {
