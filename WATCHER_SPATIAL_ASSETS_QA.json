@@ -1,0 +1,88 @@
+{
+  "version": "0.2.7-watcher-spatial",
+  "cue_seconds": [
+    12,
+    34,
+    59,
+    95,
+    137
+  ],
+  "music_in_game": false,
+  "files": [
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_01_open.ogg",
+      "sha256": "080e8a6964fbf590cfee78ce1874b02f7e37d57d53ac3094d19191a3de1ab085",
+      "duration_s": 4.6
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_01_muffled.ogg",
+      "sha256": "2abd2f94a42ec1b4a2647a894957bec903e394c1244382262e6b2b4f60354b3d",
+      "duration_s": 4.6
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_01_indoor.ogg",
+      "sha256": "e52096987ef025bc19dd69c64babc688dead716f2aa7981fdbe8f2f47368d881",
+      "duration_s": 4.727
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_02_open.ogg",
+      "sha256": "2705b665eeff958089eed297a6dc1cb1d0c71a5928ff0e1ab0651f2ca61962c9",
+      "duration_s": 6.17
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_02_muffled.ogg",
+      "sha256": "22aaa3f670600c0ef9b9cd2692c64463cf22388b0e3101611e9c850417f6fa03",
+      "duration_s": 6.17
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_02_indoor.ogg",
+      "sha256": "616df760a76ac1cd0a7b0a527e0aad20461ad115d633845f922cb100c25c2aa2",
+      "duration_s": 6.297
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_03_open.ogg",
+      "sha256": "26c45dedb217e9579637a46084f276a24db6dd5bae3b3d3b6cfb5c6d31cd1597",
+      "duration_s": 13.99
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_03_muffled.ogg",
+      "sha256": "ffe4e8c7c3eb526cc211616c21a3438d9396125ec9c36657338fbf4d28052222",
+      "duration_s": 13.99
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_03_indoor.ogg",
+      "sha256": "39b846a8948f7ed8c12e1b119bb0c5006858a7588901a3462ffd4478c902927b",
+      "duration_s": 14.117
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_04_open.ogg",
+      "sha256": "3dc5d7575131162061a2c276e171d8d4ffdd5ca19797c09c339027e5390f29e2",
+      "duration_s": 8.58
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_04_muffled.ogg",
+      "sha256": "60eac53eddc36119d6f707ad097d3a61112fb9928396da3d4a0932889e832bf0",
+      "duration_s": 8.58
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_04_indoor.ogg",
+      "sha256": "7201cc3e5ed11ece4bde70908a57e85e4ed814f5bef1626fc197a06d9bf03946",
+      "duration_s": 8.707
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_05_open.ogg",
+      "sha256": "5e5feb0ae56d8af68a21a2ef26fbb3b30fef1484641e83874df1bbb7d9c573f5",
+      "duration_s": 4.89
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_05_muffled.ogg",
+      "sha256": "43939512d7df31c3f981e1423eb73c47fc5fe427392d9c0b7bfea0963341bd78",
+      "duration_s": 4.89
+    },
+    {
+      "file": "src/main/resources/assets/veilchapter/sounds/watcher/watcher_voice_05_indoor.ogg",
+      "sha256": "9d722a0ea5a8602093c78a8ca00e620b0093db7c8beae47446f43f74bb4b8d03",
+      "duration_s": 5.017
+    }
+  ]
+}
