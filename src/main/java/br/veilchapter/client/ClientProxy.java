@@ -39,7 +39,7 @@ public final class ClientProxy extends CommonProxy {
                 });
         RenderingRegistry.registerEntityRenderingHandler(EntityTenant.class, new IRenderFactory<EntityTenant>(){
             @Override public net.minecraft.client.renderer.entity.Render<? super EntityTenant> createRenderFor(RenderManager manager){
-                return new RenderTenant(manager);
+                return new GeoTenantRenderer(manager);
             }
         });
         RenderingRegistry.registerEntityRenderingHandler(EntityEcho.class, new IRenderFactory<EntityEcho>(){
@@ -49,7 +49,7 @@ public final class ClientProxy extends CommonProxy {
         });
         RenderingRegistry.registerEntityRenderingHandler(EntityDragged.class, new IRenderFactory<EntityDragged>(){
             @Override public net.minecraft.client.renderer.entity.Render<? super EntityDragged> createRenderFor(RenderManager manager){
-                return new RenderDragged(manager);
+                return new GeoDraggedRenderer(manager);
             }
         });
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new ClientEvents());

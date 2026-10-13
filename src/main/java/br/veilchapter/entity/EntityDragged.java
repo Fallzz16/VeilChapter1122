@@ -12,12 +12,19 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import software.bernie.geckolib3.core.IAnimatable;
+import software.bernie.geckolib3.core.PlayState;
+import software.bernie.geckolib3.core.builder.AnimationBuilder;
+import software.bernie.geckolib3.core.controller.AnimationController;
+import software.bernie.geckolib3.core.manager.AnimationData;
+import software.bernie.geckolib3.core.manager.AnimationFactory;
 
 /**
  * Rare, limited-life cave pursuer. No griefing, mining, forced teleports, or
  * persistent fights. Bright light and broken sight can end a pursuit.
  */
-public final class EntityDragged extends EntityCreature {
+public final class EntityDragged extends EntityCreature implements IAnimatable {
+    private final AnimationFactory animationFactory=new AnimationFactory(this);
     private static final DataParameter<Byte> MODE =
         EntityDataManager.createKey(EntityDragged.class,DataSerializers.BYTE);
     private int nextStrike;
@@ -34,6 +41,16 @@ public final class EntityDragged extends EntityCreature {
     public int getMode(){return dataManager.get(MODE);}
     private void mode(int i){if(getMode()!=i)dataManager.set(MODE,(byte)i);}
     @Override protected void initEntityAI(){}
+    @Override public AnimationFactory getFactory(){return animationFactory;}
+    @Override public void registerControllers(AnimationData data){
+        data.addAnimationController(new AnimationController<>(this,"dragged_performance",5,event->{
+            int state=getMode();
+            String animation=state==2?"animation.dragged.retreat":
+                    state==1?"animation.dragged.crawl":"animation.dragged.idle";
+            event.getController().setAnimation(new AnimationBuilder().addAnimation(animation,state!=2));
+            return PlayState.CONTINUE;
+        }));
+    }
     @Override protected void applyEntityAttributes(){
         super.applyEntityAttributes();
         getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(18);

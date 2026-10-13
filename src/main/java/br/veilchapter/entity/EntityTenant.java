@@ -10,12 +10,19 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import software.bernie.geckolib3.core.IAnimatable;
+import software.bernie.geckolib3.core.PlayState;
+import software.bernie.geckolib3.core.builder.AnimationBuilder;
+import software.bernie.geckolib3.core.controller.AnimationController;
+import software.bernie.geckolib3.core.manager.AnimationData;
+import software.bernie.geckolib3.core.manager.AnimationFactory;
 
 /**
  * The Tenant: unnatural stillness, slight head turns, and a deliberate retreat.
  * Strictly non-hostile in the initial entity pack. No loot, attack AI or griefing.
  */
-public final class EntityTenant extends EntityCreature {
+public final class EntityTenant extends EntityCreature implements IAnimatable {
+    private final AnimationFactory animationFactory = new AnimationFactory(this);
     private static final DataParameter<Byte> PHASE =
         EntityDataManager.createKey(EntityTenant.class,DataSerializers.BYTE);
     private int seenTicks;
@@ -31,6 +38,15 @@ public final class EntityTenant extends EntityCreature {
     public int getPhase(){return dataManager.get(PHASE);}
     private void phase(int v){if(getPhase()!=v)dataManager.set(PHASE,(byte)v);}
     @Override protected void initEntityAI() {}
+    @Override public AnimationFactory getFactory(){return animationFactory;}
+    @Override public void registerControllers(AnimationData data){
+        data.addAnimationController(new AnimationController<>(this,"tenant_performance",7,event->{
+            String animation=getPhase()>=2?"animation.tenant.retreat":
+                    getPhase()==1?"animation.tenant.stare":"animation.tenant.idle";
+            event.getController().setAnimation(new AnimationBuilder().addAnimation(animation,true));
+            return PlayState.CONTINUE;
+        }));
+    }
     @Override protected void applyEntityAttributes() {
         super.applyEntityAttributes();
         getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(12.0);
