@@ -52,7 +52,7 @@ public final class EntityTenant extends EntityCreature {
             Vec3d eye=p.getPositionEyes(1.0F);
             Vec3d target=new Vec3d(posX,posY+1.6,posZ);
             Vec3d delta=target.subtract(eye);
-            double dist=delta.lengthVector();
+            double dist=Math.sqrt(delta.x*delta.x+delta.y*delta.y+delta.z*delta.z);
             boolean facing=dist>0.01 && p.getLookVec().normalize().dotProduct(
                     delta.normalize())>.965;
             boolean occluded=world.rayTraceBlocks(eye,target,false,true,false)!=null;
@@ -72,11 +72,11 @@ public final class EntityTenant extends EntityCreature {
     @Override protected net.minecraft.util.SoundEvent getDeathSound(){return null;}
     @Override protected void dropFewItems(boolean wasRecentlyHit,int lootingModifier){}
     @Override public boolean canBePushed(){return false;}
-    @Override protected void readEntityFromNBT(NBTTagCompound compound){
+    @Override public void readEntityFromNBT(NBTTagCompound compound){
         super.readEntityFromNBT(compound);
         phase(compound.getInteger("veilPhase"));
     }
-    @Override protected void writeEntityToNBT(NBTTagCompound compound){
+    @Override public void writeEntityToNBT(NBTTagCompound compound){
         super.writeEntityToNBT(compound);
         compound.setInteger("veilPhase",getPhase());
     }
