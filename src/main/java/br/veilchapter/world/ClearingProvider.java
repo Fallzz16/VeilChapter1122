@@ -17,7 +17,7 @@ public final class ClearingProvider extends WorldProviderSurface {
         return new ChunkGeneratorFlat(world, world.getSeed(), false,
                 "3;minecraft:bedrock,2*minecraft:dirt,minecraft:grass;1;");
     }
-    @Override public DimensionType getDimensionType() {return br.veilchapter.VeilMod.CLEARING_DIM >= 0
+    @Override public DimensionType getDimensionType() {return br.veilchapter.VeilMod.LEGACY_CLEARING_DIM >= 0
             ? net.minecraftforge.common.DimensionManager.getProviderType(br.veilchapter.VeilMod.CLEARING_DIM)
             : DimensionType.OVERWORLD;}
     @Override public float calculateCelestialAngle(long worldTime,float partialTicks) {return 0.0F;} // fixed midday
