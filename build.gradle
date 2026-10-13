@@ -1,4 +1,4 @@
-// VEIL CHAPTER v0.2.6 - TREE RITUAL STAGING (NEEDS CLIENT PLAYTEST).
+// VEIL CHAPTER v0.2.7 - WATCHER SPATIAL VOICE (NEEDS CLIENT PLAYTEST).
 // ForgeGradle 5.1.74 / Gradle 7.3.3, publicado oficialmente.
 // Exige verificacao de userdev3 do Forge 2859 e um build real antes de entrega.
 buildscript {
@@ -14,7 +14,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 
-version = '0.2.7-watcher-dual-voice'
+version = '0.2.7-watcher-spatial'
 group = 'br.veilchapter'
 archivesBaseName = 'VeilChapter1122'
 sourceCompatibility = targetCompatibility = '1.8'
