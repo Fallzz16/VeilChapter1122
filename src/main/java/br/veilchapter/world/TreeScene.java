@@ -38,8 +38,8 @@ public final class TreeScene {
     private static int[] planCounts;
     private static final int[] CUE_TICKS = {6*20, 28*20, 55*20, 91*20, 116*20};
     private static final String[] CUES = {
-        "Voce demorou.", "Tudo comeca abaixo de nos.", "Observe.",
-        "Mesmo o que foi esquecido continua crescendo.", "Tres dias."
+        "Você demorou.", "Tudo começa abaixo de nós.", "Observe.",
+        "Mesmo aquilo que foi esquecido continua crescendo.", "Três dias."
     };
     private static final DreadSystem RESTORER = new DreadSystem();
     private static final class Placement {
