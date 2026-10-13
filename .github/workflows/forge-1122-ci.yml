@@ -54,8 +54,6 @@ jobs:
           fi
           ffprobe -version | head -n 1
           python3 tools/validar_audio.py 2>&1 | tee audio_qa.log
-      - name: Watcher Spatial Voice checks (5 speeches x 3 environments)
-        run: python3 tools/validar_watcher_spatial.py 2>&1 | tee watcher_spatial_qa.log
       - name: Offline logic tests
         run: bash tools/testar_logica_offline.sh | tee offline_qa.log
       - name: Prepare Gradle wrapper
@@ -65,6 +63,8 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew --no-daemon --stacktrace clean build 2>&1 | tee build_log.txt
+      - name: Watcher Spatial Voice checks (5 speeches x 3 environments)
+        run: python3 tools/validar_watcher_spatial.py 2>&1 | tee watcher_spatial_qa.log
       - name: Inspect generated JAR
         shell: bash
         run: |
