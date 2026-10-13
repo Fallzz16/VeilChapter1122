@@ -76,7 +76,7 @@
     ]
   },
   "watcher_voice_01_open": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_01_open",
@@ -85,7 +85,7 @@
     ]
   },
   "watcher_voice_01_muffled": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_01_muffled",
@@ -94,7 +94,7 @@
     ]
   },
   "watcher_voice_01_indoor": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_01_indoor",
@@ -103,7 +103,7 @@
     ]
   },
   "watcher_voice_02_open": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_02_open",
@@ -112,7 +112,7 @@
     ]
   },
   "watcher_voice_02_muffled": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_02_muffled",
@@ -121,7 +121,7 @@
     ]
   },
   "watcher_voice_02_indoor": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_02_indoor",
@@ -130,7 +130,7 @@
     ]
   },
   "watcher_voice_03_open": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_03_open",
@@ -139,7 +139,7 @@
     ]
   },
   "watcher_voice_03_muffled": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_03_muffled",
@@ -148,7 +148,7 @@
     ]
   },
   "watcher_voice_03_indoor": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_03_indoor",
@@ -157,7 +157,7 @@
     ]
   },
   "watcher_voice_04_open": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_04_open",
@@ -166,7 +166,7 @@
     ]
   },
   "watcher_voice_04_muffled": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_04_muffled",
@@ -175,7 +175,7 @@
     ]
   },
   "watcher_voice_04_indoor": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_04_indoor",
@@ -184,7 +184,7 @@
     ]
   },
   "watcher_voice_05_open": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_05_open",
@@ -193,7 +193,7 @@
     ]
   },
   "watcher_voice_05_muffled": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_05_muffled",
@@ -202,7 +202,7 @@
     ]
   },
   "watcher_voice_05_indoor": {
-    "category": "ambient",
+    "category": "voice",
     "sounds": [
       {
         "name": "veilchapter:watcher/watcher_voice_05_indoor",
