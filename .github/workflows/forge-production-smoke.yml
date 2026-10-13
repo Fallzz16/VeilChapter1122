@@ -3,7 +3,7 @@ name: Minecraft 1.12.2 - Production Forge Server Smoke
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, dev/watcher-dual-voice-tree]
     paths:
       - '.github/workflows/forge-production-smoke.yml'
       - 'src/**'
