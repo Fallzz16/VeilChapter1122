@@ -3,6 +3,8 @@ import br.veilchapter.CommonProxy;
 import br.veilchapter.entity.EntityWatcher;
 import br.veilchapter.entity.EntityPeeker;
 import br.veilchapter.entity.EntityTenant;
+import br.veilchapter.entity.EntityEcho;
+import br.veilchapter.entity.EntityDragged;
 import net.minecraft.client.model.ModelPlayer;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -38,6 +40,16 @@ public final class ClientProxy extends CommonProxy {
         RenderingRegistry.registerEntityRenderingHandler(EntityTenant.class, new IRenderFactory<EntityTenant>(){
             @Override public net.minecraft.client.renderer.entity.Render<? super EntityTenant> createRenderFor(RenderManager manager){
                 return new RenderTenant(manager);
+            }
+        });
+        RenderingRegistry.registerEntityRenderingHandler(EntityEcho.class, new IRenderFactory<EntityEcho>(){
+            @Override public net.minecraft.client.renderer.entity.Render<? super EntityEcho> createRenderFor(RenderManager manager){
+                return new RenderEcho(manager);
+            }
+        });
+        RenderingRegistry.registerEntityRenderingHandler(EntityDragged.class, new IRenderFactory<EntityDragged>(){
+            @Override public net.minecraft.client.renderer.entity.Render<? super EntityDragged> createRenderFor(RenderManager manager){
+                return new RenderDragged(manager);
             }
         });
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new ClientEvents());

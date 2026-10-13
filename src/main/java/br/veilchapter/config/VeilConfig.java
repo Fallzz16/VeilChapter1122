@@ -32,6 +32,19 @@ public final class VeilConfig {
     @Config.RangeInt(min=0,max=100)
     @Config.Comment("Porcentagem de sucesso por tentativa do Inquilino (cadencia de 4-8 minutos).")
     public static int tenantAttemptChance = 42;
+    @Config.Comment("O Eco: sequencias auditivas subterraneas, dia 5 ou depois.")
+    public static boolean enableEcho=true;
+    @Config.RangeInt(min=0,max=100)
+    @Config.Comment("Chance de Eco por tentativa no subsolo.")
+    public static int echoAttemptChance=53;
+    @Config.Comment("O Arrastado: perseguidor extremamente raro de cavernas, dias 6-7.")
+    public static boolean enableDragged=true;
+    @Config.RangeInt(min=0,max=100)
+    @Config.Comment("Chance de Arrastado por tentativa no subsolo.")
+    public static int draggedAttemptChance=20;
+    @Config.RangeDouble(min=0.0,max=4.0)
+    @Config.Comment("Dano do Arrastado em pontos de vida (1=meio coracao).")
+    public static double draggedAttackDamage=1.0;
     @Config.RangeInt(min=2,max=32)
     @Config.Comment("Distancia maxima em chunks para busca de eventos; sem carregar chunks novos")
     public static int searchChunks = 6;

@@ -42,6 +42,12 @@ public final class GameEvents {
     public static boolean debugTenantViaInstance(EntityPlayerMP player,StoryData data){
         return installed!=null && installed.horrorDirector.debugTenant(player,data);
     }
+    public static boolean debugEchoViaInstance(EntityPlayerMP p){
+        return installed!=null && installed.horrorDirector.debugEcho(p);
+    }
+    public static boolean debugDraggedViaInstance(EntityPlayerMP p){
+        return installed!=null && installed.horrorDirector.debugDragged(p);
+    }
     public boolean debugTenant(EntityPlayerMP player,StoryData data){return horrorDirector.debugTenant(player,data);}
 
     /** Restore pre-removal worlds without changing their day progression. */

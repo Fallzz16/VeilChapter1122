@@ -14,7 +14,7 @@ import net.minecraft.util.text.TextComponentString;
 /** Cheat/OP-only diagnostic features; no debug items or blocks injected into gameplay. */
 public final class VeilDebugCommands extends CommandBase {
     @Override public String getName() {return "veiltest";}
-    @Override public String getUsage(ICommandSender s) {return "/veiltest day <2..7> | psst | audio <psst|hey|laugh|breath> <left|right|front|behind> | tenant | watcher | peeker";}
+    @Override public String getUsage(ICommandSender s) {return "/veiltest day <2..7> | psst | audio <psst|hey|laugh|breath> <left|right|front|behind> | tenant | watcher | peeker | echo | dragged";}
     @Override public int getRequiredPermissionLevel() {return 2;}
     @Override public void execute(MinecraftServer server,ICommandSender sender,String[] args) throws CommandException {
         EntityPlayerMP p=getCommandSenderAsPlayer(sender);
@@ -69,6 +69,13 @@ public final class VeilDebugCommands extends CommandBase {
             }
             sender.sendMessage(new TextComponentString("[Veil] "+args[0]+" criado a "+distance+" blocos."));
             return;
+        }
+        if(args.length==1 && (args[0].equals("echo") || args[0].equals("dragged"))) {
+            boolean created=args[0].equals("echo")?
+                    br.veilchapter.GameEvents.debugEchoViaInstance(p):
+                    br.veilchapter.GameEvents.debugDraggedViaInstance(p);
+            if(!created)throw new CommandException("Procure uma caverna escura e chunks carregados para testar.");
+            sender.sendMessage(new TextComponentString("[Veil] Manifestacao gerada: "+args[0]));return;
         }
         if(args.length==1 && args[0].equals("tenant")) {
             if(!br.veilchapter.GameEvents.TEST_TENANT_AVAILABLE)
