@@ -2,6 +2,7 @@ package br.veilchapter.client;
 import br.veilchapter.CommonProxy;
 import br.veilchapter.entity.EntityWatcher;
 import br.veilchapter.entity.EntityPeeker;
+import br.veilchapter.entity.EntityTenant;
 import net.minecraft.client.model.ModelPlayer;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -34,6 +35,11 @@ public final class ClientProxy extends CommonProxy {
                         return new RenderPeeker(manager);
                     }
                 });
+        RenderingRegistry.registerEntityRenderingHandler(EntityTenant.class, new IRenderFactory<EntityTenant>(){
+            @Override public net.minecraft.client.renderer.entity.Render<? super EntityTenant> createRenderFor(RenderManager manager){
+                return new RenderTenant(manager);
+            }
+        });
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new ClientEvents());
     }
 }

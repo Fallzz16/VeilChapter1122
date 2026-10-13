@@ -2,6 +2,7 @@ package br.veilchapter;
 
 import br.veilchapter.entity.EntityWatcher;
 import br.veilchapter.entity.EntityPeeker;
+import br.veilchapter.entity.EntityTenant;
 import br.veilchapter.world.ClearingProvider; // used only for legacy save rescue
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.DimensionManager;
@@ -19,7 +20,7 @@ import org.apache.logging.log4j.Logger;
 public final class VeilMod {
     public static final String ID = "veilchapter";
     public static final String NAME = "Veil Chapter - Psychological Horror";
-    public static final String VERSION = "0.3.0-no-tree-dev";
+    public static final String VERSION = "0.3.0-entities-alpha1";
     public static final int LEGACY_CLEARING_DIM = 713;
     public static Logger LOG;
     public static net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper NETWORK;
@@ -37,6 +38,9 @@ public final class VeilMod {
                 "watcher", 0, this, 96, 3, false);
         EntityRegistry.registerModEntity(new ResourceLocation(ID, "peeker"), EntityPeeker.class,
                 "peeker", 1, this, 80, 5, false);
+        // ID=2 reserved for the new domestic entity. Existing worlds retain watcher=0, peeker=1.
+        EntityRegistry.registerModEntity(new ResourceLocation(ID, "tenant"), EntityTenant.class,
+                "tenant", 2, this, 80, 5, false);
         if (!DimensionManager.isDimensionRegistered(LEGACY_CLEARING_DIM)) {
             DimensionType clearing = DimensionType.register("Veil Clearing", "_veil", LEGACY_CLEARING_DIM,
                     ClearingProvider.class, false);

@@ -23,7 +23,6 @@ public final class EntityTenant extends EntityCreature {
         super(world);
         setSize(.52F,2.34F);
         experienceValue=0;
-        enablePersistence();
     }
     @Override protected void entityInit() {
         super.entityInit();

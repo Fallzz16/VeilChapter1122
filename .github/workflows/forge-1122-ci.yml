@@ -3,7 +3,7 @@ name: Forge 1.12.2 - Build and QA
 on:
   workflow_dispatch:
   push:
-    branches: [main, dev/watcher-dual-voice-tree, dev/tree-30-atmosphere-v028, dev/tree-sealed-watcher-cinematic-v028, dev/early-days-watcher-stalking-v029, dev/no-tree-chapter1-v030]
+    branches: [main, dev/watcher-dual-voice-tree, dev/tree-30-atmosphere-v028, dev/tree-sealed-watcher-cinematic-v028, dev/early-days-watcher-stalking-v029, dev/no-tree-chapter1-v030, dev/entities-first-three-v030]
     paths:
       - 'src/**'
       - 'build.gradle'

@@ -52,6 +52,8 @@ public final class TenantEncounterSystem {
     }
     private boolean appear(EntityPlayerMP player,StoryData d){
         WorldServer w=(WorldServer)player.world;
+        if(!w.getEntities(EntityTenant.class,e-> e.getDistanceSq(player)<64*64).isEmpty())
+            return false;
         for(int i=0;i<48;i++){
             int distance=5+rng.nextInt(16);
             double angle=rng.nextDouble()*Math.PI*2;

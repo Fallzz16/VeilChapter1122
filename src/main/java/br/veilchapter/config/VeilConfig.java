@@ -27,6 +27,11 @@ public final class VeilConfig {
     @Config.RangeInt(min=24,max=72)
     @Config.Comment("Distancia maxima aproximada do Watcher distante, respeitando chunks carregados.")
     public static int watcherHorizonBlocks = 40;
+    @Config.Comment("Entidade O Inquilino: aparicoes raras perto de casa, a partir do dia 4.")
+    public static boolean enableTenant = true;
+    @Config.RangeInt(min=0,max=100)
+    @Config.Comment("Porcentagem de sucesso por tentativa do Inquilino (cadencia de 4-8 minutos).")
+    public static int tenantAttemptChance = 42;
     @Config.RangeInt(min=2,max=32)
     @Config.Comment("Distancia maxima em chunks para busca de eventos; sem carregar chunks novos")
     public static int searchChunks = 6;

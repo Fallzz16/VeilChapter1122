@@ -24,7 +24,9 @@ checks={
 "bed must still be occupied":"p.isPlayerSleeping()" in presence,
 "peeker registered":'"peeker", 1, this' in mod,
 "retired tree never requested":"tree.request(" not in events,
-"legacy save rescue":"recovery.rescue(" in events
+"legacy save rescue":"recovery.rescue(" in events,
+"entity director is central":"horrorDirector.tick(" in events,
+"third entity registered":'"tenant", 2, this' in mod
 }
 for name,ok in checks.items():
     if not ok:raise AssertionError(name)

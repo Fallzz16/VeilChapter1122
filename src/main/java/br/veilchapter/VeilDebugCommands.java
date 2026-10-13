@@ -1,5 +1,6 @@
 package br.veilchapter;
 import br.veilchapter.state.StoryData;
+import br.veilchapter.entity.EntityTenant;
 import br.veilchapter.sound.VeilSounds;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
@@ -13,7 +14,7 @@ import net.minecraft.util.text.TextComponentString;
 /** Cheat/OP-only diagnostic features; no debug items or blocks injected into gameplay. */
 public final class VeilDebugCommands extends CommandBase {
     @Override public String getName() {return "veiltest";}
-    @Override public String getUsage(ICommandSender s) {return "/veiltest day <2..7> | psst | audio <psst|hey|laugh|breath> <left|right|front|behind>";}
+    @Override public String getUsage(ICommandSender s) {return "/veiltest day <2..7> | psst | audio <psst|hey|laugh|breath> <left|right|front|behind> | tenant";}
     @Override public int getRequiredPermissionLevel() {return 2;}
     @Override public void execute(MinecraftServer server,ICommandSender sender,String[] args) throws CommandException {
         EntityPlayerMP p=getCommandSenderAsPlayer(sender);
@@ -40,6 +41,14 @@ public final class VeilDebugCommands extends CommandBase {
                 throw new CommandException("Direcoes: left, right, front, behind");
             testDirectional(p,sound,args[2]);
             sender.sendMessage(new TextComponentString("[Veil] Som: "+args[1]+" | direcao: "+args[2]));return;
+        }
+        if(args.length==1 && args[0].equals("tenant")) {
+            if(!br.veilchapter.GameEvents.TEST_TENANT_AVAILABLE)
+                throw new CommandException("Sistema de debug nao habilitado.");
+            boolean ok=br.veilchapter.GameEvents.debugTenantViaInstance(p,d);
+            if(!ok) throw new CommandException("Sem espaco valido em chunks carregados; tente perto de casa ou no plano.");
+            sender.sendMessage(new TextComponentString("[Veil] Inquilino invocado; observe a silhueta a distancia."));
+            return;
         }
         throw new CommandException(getUsage(sender));
     }

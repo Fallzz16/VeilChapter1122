@@ -5,6 +5,7 @@ import br.veilchapter.state.StoryData;
 import br.veilchapter.system.AnomalySystem;
 import br.veilchapter.system.DreadSystem;
 import br.veilchapter.system.PresenceSystem;
+import br.veilchapter.system.HorrorDirector;
 import br.veilchapter.world.LegacyClearingRecovery;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -29,17 +30,32 @@ import java.util.Random;
 public final class GameEvents {
     public static boolean legacyDimensionUnavailable;
     private final PresenceSystem presence = new PresenceSystem();
+    private final HorrorDirector horrorDirector = new HorrorDirector(presence);
     private final AnomalySystem anomalies = new AnomalySystem();
     private final DreadSystem dread = new DreadSystem();
     private final LegacyClearingRecovery recovery = new LegacyClearingRecovery();
     private long lastLogicTick = -1;
     private final Random random = new Random();
+    public static final boolean TEST_TENANT_AVAILABLE=true;
+    private static GameEvents installed;
+    public GameEvents(){installed=this;}
+    public static boolean debugTenantViaInstance(EntityPlayerMP player,StoryData data){
+        return installed!=null && installed.horrorDirector.debugTenant(player,data);
+    }
+    public boolean debugTenant(EntityPlayerMP player,StoryData data){return horrorDirector.debugTenant(player,data);}
 
     /** Restore pre-removal worlds without changing their day progression. */
     @SubscribeEvent public void loggedIn(net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent ev) {
         if(!(ev.player instanceof EntityPlayerMP))return;
         EntityPlayerMP p=(EntityPlayerMP)ev.player;
         if(p.dimension==0)StoryData.get(p.world).retireLegacyTree();
+    }
+    @SubscribeEvent public void loggedOut(net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent ev) {
+        if(ev.player instanceof EntityPlayerMP){
+            EntityPlayerMP p=(EntityPlayerMP)ev.player;
+            horrorDirector.cleanup(p);
+            presence.endBedWatcher(p);
+        }
     }
     /** Schedule a sleep apparition, no forced sleep/wake or changes to the game's rules. */
     @SubscribeEvent public void goingToBed(PlayerSleepInBedEvent ev) {
@@ -81,11 +97,8 @@ public final class GameEvents {
         StoryData d = StoryData.get(world);
         d.retireLegacyTree();
         long now = world.getTotalWorldTime();
-        if(VeilConfig.enableWatcher) {
-            presence.tickBedWatcher(p,now);
-            if(now%20==0 && d.clock.active() && !d.awakeningPending &&
-                    !d.clock.completed())presence.ambientTick(p,d,now);
-        }
+        if(VeilConfig.enableWatcher)presence.tickBedWatcher(p,now);
+        if(now%20==0)horrorDirector.tick(p,d,now);
         if (lastLogicTick == now) return; // Singleplayer first, guard duplicate player ticks.
         lastLogicTick = now;
         if(now%40==0 && VeilMod.NETWORK!=null)VeilMod.NETWORK.sendTo(

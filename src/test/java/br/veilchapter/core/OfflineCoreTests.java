@@ -35,6 +35,21 @@ public final class OfflineCoreTests {
         unfinished.restore(7,1,true,false);
         for(int day=2;day<=40;day++)unfinished.tickCalendar(day);
         check(unfinished.day()==7 && !unfinished.completed(),"no automatic chapter finale");
+        for(int day=1;day<=7;day++){
+            check(!EntityEncounterRules.tenantAllowed(day,true,false,true,true,true) || day>=4,
+                    "ineligible early day");
+        }
+        check(EntityEncounterRules.tenantAllowed(4,true,false,true,true,true),"valid tenant conditions");
+        check(!EntityEncounterRules.tenantAllowed(4,true,false,true,true,false),"tenant daytime");
+        check(!EntityEncounterRules.tenantAllowed(4,true,false,true,false,true),"tenant away from home");
+        check(!EntityEncounterRules.tenantAllowed(4,true,true,true,true,true),"no activity after completion");
+        check(!EntityEncounterRules.tenantAllowed(4,true,false,false,true,true),"Overworld only");
+        check(EntityEncounterRules.withinHome(25) && EntityEncounterRules.withinHome(484),"distance range");
+        check(!EntityEncounterRules.withinHome(24) && !EntityEncounterRules.withinHome(485),"distance rejection");
+        for(int i=-100;i<400;i++) {
+            long next=EntityEncounterRules.nextAttempt(100,4,i);
+            check(next>=100+240*20L && next<=100+480*20L,"capped event cadence");
+        }
         System.out.println("PASS: " + assertions + " verificacoes offline (Java puro)");
     }
 }
