@@ -36,10 +36,24 @@ public final class TreeScene {
     public static final BlockPos CHEST = new BlockPos(0,5,0);
     private static List<Placement> plan;
     private static int[] planCounts;
-    private static final int[] CUE_TICKS = {6*20, 28*20, 55*20, 91*20, 116*20};
-    private static final String[] CUES = {
-        "Você demorou.", "Tudo começa abaixo de nós.", "Observe.",
-        "Mesmo aquilo que foi esquecido continua crescendo.", "Três dias."
+    // Eight separated speeches throughout the 150-second growth, no overlapping dialogue.
+    private static final int[] VOICE_SECONDS = {9, 28, 46, 64, 82, 101, 119, 136};
+    private static final int[] VOICE_DURATION_TICKS = {92, 124, 127, 68, 104, 63, 116, 98};
+    private static final net.minecraft.util.SoundEvent[] VOICES = {
+        VeilSounds.WATCHER_VOICE_01, VeilSounds.WATCHER_VOICE_02,
+        VeilSounds.WATCHER_VOICE_03, VeilSounds.WATCHER_VOICE_04,
+        VeilSounds.WATCHER_VOICE_05, VeilSounds.WATCHER_VOICE_06,
+        VeilSounds.WATCHER_VOICE_07, VeilSounds.WATCHER_VOICE_08
+    };
+    private static final String[] SUBTITLES = {
+        "Até que enfim... Eu estava esperando por você.",
+        "Tudo parece estranho... mas eu confio em você para salvá-lo.",
+        "Tudo foi perdido naquela vila.",
+        "Sua vida, seus projetos, seus sonhos...",
+        "Tudo foi destruído... e eu não pude fazer nada.",
+        "Não há esperanças naquele lugar.",
+        "Tudo que tenta crescer ali logo morre...",
+        "Mas agora... nós temos você."
     };
     private static final DreadSystem RESTORER = new DreadSystem();
     private static final class Placement {
@@ -101,13 +115,7 @@ public final class TreeScene {
             }
         }
 
-        ritualCues(p,elapsed,d);
-        if ((d.treeWatcherFlags&1)==0 && elapsed>=12*20 && spawnRitualWatcher(w,-22,17,110,VeilSounds.PSST)) {
-            d.treeWatcherFlags|=1;d.markDirty();
-        }
-        if ((d.treeWatcherFlags&2)==0 && elapsed>=71*20 && spawnRitualWatcher(w,17,13,120,VeilSounds.BREATH)) {
-            d.treeWatcherFlags|=2;d.markDirty();
-        }
+        ritualVoices(p,w,elapsed,d);
         if (elapsed%20==0)clearExpiredWatchers(w);
 
         // Keep the tree in view from the ground. Movement is never locked.
@@ -152,46 +160,72 @@ public final class TreeScene {
             }
         }
         if(d.treeStage==2){
-            if((d.treeWatcherFlags&4)==0 && spawnRitualWatcher(w,0,16,100,VeilSounds.HEY)) {
-                d.treeWatcherFlags|=4;d.markDirty();
-            }
             if(elapsed%36==0 && elapsed<TreeRitualPacing.TOTAL_TICKS+240)
                 p.sendStatusMessage(new TextComponentString("Agora, entre."),true);
         }
     }
 
-    private void ritualCues(EntityPlayerMP p,long elapsed,StoryData d){
-        if(d.treeStage==2)return;
-        for(int i=0;i<CUE_TICKS.length;i++){
-            long t=CUE_TICKS[i];
-            if(elapsed>=t && elapsed<t+80 && elapsed%30==0){
-                p.sendStatusMessage(new TextComponentString(CUES[i]),true);
-                return;
+    private void ritualVoices(EntityPlayerMP p,WorldServer w,long elapsed,StoryData d) {
+        if(d.treeStage==2)return; // Completed scene must not replay a spoken cue.
+        for(int i=0;i<VOICE_SECONDS.length;i++){
+            int mask=1<<i;
+            if((d.treeWatcherFlags & mask)!=0)continue;
+            long start=VOICE_SECONDS[i]*20L;
+            if(elapsed<start)break;
+            // If a save was resumed far beyond an earlier cue, skip rather than play
+            // several lines simultaneously and spoil the end of the ceremony.
+            if(elapsed>start+220){
+                d.treeWatcherFlags|=mask;
+                d.markDirty();
+                continue;
             }
+            if(spawnRitualWatcher(w,p,i,VOICE_DURATION_TICKS[i]+12,VOICES[i])) {
+                d.treeWatcherFlags|=mask;
+                d.markDirty();
+                p.sendStatusMessage(new TextComponentString(SUBTITLES[i]),true);
+            }
+            break; // At most one cue and one Watcher per tick.
         }
     }
 
-    /** Spawn only scripted, harmless Watchers; the other dimension's mobs remain blocked. */
-    private boolean spawnRitualWatcher(WorldServer w,int x,int z,int life,net.minecraft.util.SoundEvent sound){
-        for(EntityWatcher other:w.getEntities(EntityWatcher.class,e->e.getEntityData().getBoolean("veilRitual")))
-            other.setDead();
-        for(int shift=0;shift<7;shift++){
-            BlockPos at=new BlockPos(x+(shift%3)-1,4,z+(shift/3));
+    /** A visible but harmless speaker close to the player's current field of view.
+        No chunk loading or player camera/position manipulation is needed. */
+    private boolean spawnRitualWatcher(WorldServer w,EntityPlayerMP p,int cue,int life,
+                                       net.minecraft.util.SoundEvent sound) {
+        double facingX=p.getLookVec().x, facingZ=p.getLookVec().z;
+        double facingLength=Math.sqrt(facingX*facingX+facingZ*facingZ);
+        if(facingLength<0.1){
+            facingX=-Math.sin(Math.toRadians(p.rotationYaw));
+            facingZ=Math.cos(Math.toRadians(p.rotationYaw));
+            facingLength=1.0;
+        }
+        facingX/=facingLength;facingZ/=facingLength;
+        // Slight off-center approaches alternate sides. The scene can still be
+        // observed with a free camera; nothing forces the player's attention.
+        int sign=(cue%2==0)?1:-1;
+        double distance=7.0+(cue%3)*1.5;
+        double centerX=p.posX+facingX*distance + sign*(-facingZ)*2.5;
+        double centerZ=p.posZ+facingZ*distance + sign*(facingX)*2.5;
+        for(int trial=0;trial<24;trial++){
+            int dx=(trial%5)-2;
+            int dz=(trial/5)-2;
+            BlockPos at=new BlockPos(Math.floor(centerX)+dx,4,Math.floor(centerZ)+dz);
             if(!w.isBlockLoaded(at,false))continue;
-            if(!w.isAirBlock(at)||!w.isAirBlock(at.up())||w.isAirBlock(at.down()))continue;
+            if(!w.isAirBlock(at) || !w.isAirBlock(at.up()) || w.isAirBlock(at.down()))continue;
+            if(p.getDistanceSq(at.getX()+.5,at.getY(),at.getZ()+.5)<16)continue;
             EntityWatcher watcher=new EntityWatcher(w);
-            watcher.setLocationAndAngles(at.getX()+.5,at.getY(),at.getZ()+.5,180,0);
+            watcher.setLocationAndAngles(at.getX()+.5,at.getY(),at.getZ()+.5,
+                    p.rotationYaw+180F,0F);
             watcher.getEntityData().setBoolean("veilRitual",true);
             watcher.getEntityData().setLong("veilRitualUntil",w.getTotalWorldTime()+life);
-            if(w.spawnEntity(watcher)){
-                w.playSound(null,watcher.posX,watcher.posY+1,watcher.posZ,
-                     sound,SoundCategory.AMBIENT,.32F,1.0F);
-                return true;
-            }
+            if(!w.spawnEntity(watcher))continue;
+            // Spatial mono audio uses the Watcher's WORLD location.
+            w.playSound(null,watcher.posX,watcher.posY+1.25,watcher.posZ,
+                    sound,SoundCategory.AMBIENT,1.0F,1.0F);
+            return true;
         }
         return false;
     }
-
     private static void clearExpiredWatchers(WorldServer w){
         for(EntityWatcher watcher:w.getEntities(EntityWatcher.class,e->e.getEntityData().getBoolean("veilRitual"))){
             if(w.getTotalWorldTime()>=watcher.getEntityData().getLong("veilRitualUntil"))
