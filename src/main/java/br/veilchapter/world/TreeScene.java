@@ -306,9 +306,9 @@ public final class TreeScene {
             if(TreeMath.trunk(x,y,z))addUnique(roots,used,new BlockPos(x,4+y,z),log);
 
         Random random=new Random(134865L);
-        for(int i=0;i<420;i++){
-            int x=random.nextInt(151)-75,z=random.nextInt(151)-75;
-            if(x*x+z*z<28*28 || x*x+z*z>72*72)continue;
+        for(int i=0;i<260;i++){
+            int x=random.nextInt(97)-48,z=random.nextInt(97)-48;
+            if(x*x+z*z<25*25 || x*x+z*z>42*42)continue;
             addUnique(roots,used,new BlockPos(x,4,z),
                     Blocks.TALLGRASS.getDefaultState().withProperty(
                         net.minecraft.block.BlockTallGrass.TYPE,
