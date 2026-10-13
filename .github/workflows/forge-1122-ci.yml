@@ -3,7 +3,7 @@ name: Forge 1.12.2 - Build and QA
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, dev/watcher-dual-voice-tree]
     paths:
       - 'src/**'
       - 'build.gradle'
@@ -54,6 +54,8 @@ jobs:
           fi
           ffprobe -version | head -n 1
           python3 tools/validar_audio.py 2>&1 | tee audio_qa.log
+      - name: Watcher Spatial Voice checks (5 speeches x 3 environments)
+        run: python3 tools/validar_watcher_spatial.py 2>&1 | tee watcher_spatial_qa.log
       - name: Offline logic tests
         run: bash tools/testar_logica_offline.sh | tee offline_qa.log
       - name: Prepare Gradle wrapper
@@ -89,13 +91,14 @@ jobs:
                   assert hashlib.sha256(z.read(member)).hexdigest()==entry["sha256"], member
               actual=json.loads(z.read("assets/veilchapter/sounds.json"))
               assert {k:len(v["sounds"]) for k,v in actual.items()}=={"psst":5,"hey":4,"laugh":3,"breath":2}
-          print("JAR_AUDIO_QA_PASS: all 14 OGG assets intact and referenced.")
+          print("JAR_AUDIO_QA_PASS: all 14 legacy OGG assets intact and referenced.")
           PY
+          python3 tools/validar_watcher_spatial.py --jar 2>&1 | tee watcher_spatial_jar_qa.log
       - name: Upload compiled JAR (not gameplay validated)
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: veilchapter-v0.2.6-TREE-RITUAL-ALPHA-NOT-CLIENT-TESTED
+          name: veilchapter-v0.2.7-WATCHER-SPATIAL-NEEDS-CLIENT-QA
           path: build/libs/*.jar
           if-no-files-found: error
       - name: Preserve diagnostics
@@ -108,5 +111,7 @@ jobs:
             static_qa.log
             offline_qa.log
             audio_qa.log
+            watcher_spatial_qa.log
+            watcher_spatial_jar_qa.log
             jar_contents.txt
           if-no-files-found: ignore
