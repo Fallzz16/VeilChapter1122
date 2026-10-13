@@ -209,5 +209,68 @@
         "stream": true
       }
     ]
+  },
+  "tree_drone": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "veilchapter:ritual/tree_drone",
+        "stream": true
+      }
+    ]
+  },
+  "tree_creak_1": {
+    "category": "blocks",
+    "sounds": [
+      {
+        "name": "veilchapter:ritual/tree_creak_1",
+        "stream": false
+      }
+    ]
+  },
+  "tree_creak_2": {
+    "category": "blocks",
+    "sounds": [
+      {
+        "name": "veilchapter:ritual/tree_creak_2",
+        "stream": false
+      }
+    ]
+  },
+  "tree_creak_3": {
+    "category": "blocks",
+    "sounds": [
+      {
+        "name": "veilchapter:ritual/tree_creak_3",
+        "stream": false
+      }
+    ]
+  },
+  "tree_creak_4": {
+    "category": "blocks",
+    "sounds": [
+      {
+        "name": "veilchapter:ritual/tree_creak_4",
+        "stream": false
+      }
+    ]
+  },
+  "tree_creak_5": {
+    "category": "blocks",
+    "sounds": [
+      {
+        "name": "veilchapter:ritual/tree_creak_5",
+        "stream": false
+      }
+    ]
+  },
+  "tree_creak_6": {
+    "category": "blocks",
+    "sounds": [
+      {
+        "name": "veilchapter:ritual/tree_creak_6",
+        "stream": false
+      }
+    ]
   }
 }
