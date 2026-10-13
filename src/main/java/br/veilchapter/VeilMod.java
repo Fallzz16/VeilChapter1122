@@ -18,7 +18,7 @@ import org.apache.logging.log4j.Logger;
 public final class VeilMod {
     public static final String ID = "veilchapter";
     public static final String NAME = "Veil Chapter - Psychological Horror";
-    public static final String VERSION = "0.2.6-tree-ritual";
+    public static final String VERSION = "0.2.7-watcher-dual-voice";
     public static final int CLEARING_DIM = 713;
     public static Logger LOG;
     public static net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper NETWORK;
