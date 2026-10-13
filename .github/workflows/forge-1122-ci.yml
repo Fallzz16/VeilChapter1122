@@ -40,6 +40,12 @@ jobs:
           test -f tools/testar_logica_offline.sh
       - name: Static preflight
         run: python3 tools/inspecao_estatica.py | tee static_qa.log
+      - name: Validate positional audio assets (OGG mono, decoding, SHA-256)
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v ffprobe
+          python3 tools/validar_audio.py 2>&1 | tee audio_qa.log
       - name: Offline logic tests
         run: bash tools/testar_logica_offline.sh | tee offline_qa.log
       - name: Prepare Gradle wrapper
@@ -59,12 +65,28 @@ jobs:
           grep -qx 'br/veilchapter/VeilMod.class' jar_contents.txt
           grep -qx 'mcmod.info' jar_contents.txt
           grep -qx 'assets/veilchapter/textures/entity/watcher.png' jar_contents.txt
-          grep -qx 'assets/veilchapter/sounds/psst.ogg' jar_contents.txt
+          python3 - <<'PY'
+          import json, zipfile, hashlib, pathlib
+          jar=next(pathlib.Path("build/libs").glob("*.jar"))
+          manifest=json.loads(pathlib.Path("AUDIO_QA_MANIFEST.json").read_text())
+          with zipfile.ZipFile(jar) as z:
+              members=set(z.namelist())
+              assert "mcmod.info" in members
+              assert "assets/veilchapter/sounds.json" in members
+              assert "assets/veilchapter/textures/entity/watcher.png" in members
+              for entry in manifest:
+                  member=entry["file"].removeprefix("src/main/resources/")
+                  assert member in members, member
+                  assert hashlib.sha256(z.read(member)).hexdigest()==entry["sha256"], member
+              actual=json.loads(z.read("assets/veilchapter/sounds.json"))
+              assert {k:len(v["sounds"]) for k,v in actual.items()}=={"psst":5,"hey":4,"laugh":3,"breath":2}
+          print("JAR_AUDIO_QA_PASS: all 14 OGG assets intact and referenced.")
+          PY
       - name: Upload compiled JAR (not gameplay validated)
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: veilchapter-1122-COMPILED-NOT-GAMEPLAY-TESTED
+          name: veilchapter-1122-v0.2.5-AUDIO3D-NOT-GAMEPLAY-TESTED
           path: build/libs/*.jar
           if-no-files-found: error
       - name: Preserve diagnostics
@@ -76,5 +98,6 @@ jobs:
             build_log.txt
             static_qa.log
             offline_qa.log
+            audio_qa.log
             jar_contents.txt
           if-no-files-found: ignore
