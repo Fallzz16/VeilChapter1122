@@ -23,7 +23,7 @@ public final class TreeRitualAudio {
         boolean blockedAtEars = world.rayTraceBlocks(
             source, ears, false, true, false) != null;
         boolean blockedAtChest = world.rayTraceBlocks(
-            source, ears.addVector(0,-0.55,0), false, true, false) != null;
+            source, new Vec3d(ears.x,ears.y-0.55,ears.z), false, true, false) != null;
         // Partial obstruction is often just a low root or leaves.
         if (blockedAtEars && blockedAtChest) return Room.MUFFLED;
         if (isEnclosed(world,listener.getPosition()) || isEnclosed(world,new BlockPos(source)))
