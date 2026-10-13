@@ -17,6 +17,7 @@ import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerWakeUpEvent;
+import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.world.BlockEvent;
@@ -46,11 +47,23 @@ public final class GameEvents {
             d.treeStarted=0;d.treeWatcherFlags=0;d.markDirty();
         }
     }
+    /** Schedule a sleep apparition, no forced sleep/wake or changes to the game's rules. */
+    @SubscribeEvent public void goingToBed(PlayerSleepInBedEvent ev) {
+        if(!(ev.getEntityPlayer() instanceof EntityPlayerMP))return;
+        EntityPlayerMP p=(EntityPlayerMP)ev.getEntityPlayer();
+        if(p.world.isRemote || p.dimension!=0 || !VeilConfig.enableBedWatcher ||
+                !VeilConfig.enableWatcher)return;
+        StoryData d=StoryData.get(p.world);
+        if(d.clock.active() && !d.clock.completed() && d.clock.day()>=2)
+            presence.scheduleBedWatcher(p, d.clock.day(), p.world.getTotalWorldTime(),
+                    VeilConfig.bedWatcherChance);
+    }
     @SubscribeEvent public void wake(PlayerWakeUpEvent ev) {
         if (!(ev.getEntityPlayer() instanceof EntityPlayerMP)) return;
         EntityPlayerMP player = (EntityPlayerMP) ev.getEntityPlayer();
         if (player.dimension != 0 || player.world.isRemote) return;
         StoryData d = StoryData.get(player.world);
+        presence.endBedWatcher(player);
         if (!d.clock.active()) {
             d.clock.awaken(Math.floorDiv(player.world.getWorldTime(),24000L));
             d.awakeningPending = true;
@@ -73,6 +86,11 @@ public final class GameEvents {
         WorldServer world = (WorldServer) p.world;
         StoryData d = StoryData.get(world);
         long now = world.getTotalWorldTime();
+        if(VeilConfig.enableWatcher) {
+            presence.tickBedWatcher(p,now);
+            if(now%20==0 && d.clock.active() && !d.awakeningPending &&
+                    !d.clock.completed() && !d.treeActive)presence.ambientTick(p,d,now);
+        }
         if (lastLogicTick == now) return; // Singleplayer first, guard duplicate player ticks.
         lastLogicTick = now;
         if(now%40==0 && VeilMod.NETWORK!=null)VeilMod.NETWORK.sendTo(

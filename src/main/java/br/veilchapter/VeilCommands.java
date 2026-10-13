@@ -17,7 +17,7 @@ public final class VeilCommands extends CommandBase {
                 " iniciado="+d.clock.active()+" concluido="+d.clock.completed()+
                 " arvore="+d.treeActive+" livroPendente="+d.bookPending+
                 " arvoreEtapa="+d.treeStage+" blocosConstruidos="+d.treeCursor+
-                " aparicoesRitual="+Integer.bitCount(d.treeWatcherFlags&7)+
+                " aparicoesRitual="+Integer.bitCount(d.treeWatcherFlags&31)+
                 " criaturasEmEspera="+d.suspendedMobs.size()));
     }
 }

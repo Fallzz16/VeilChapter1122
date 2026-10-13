@@ -1,6 +1,7 @@
 package br.veilchapter;
 
 import br.veilchapter.entity.EntityWatcher;
+import br.veilchapter.entity.EntityPeeker;
 import br.veilchapter.world.ClearingProvider;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.DimensionManager;
@@ -18,7 +19,7 @@ import org.apache.logging.log4j.Logger;
 public final class VeilMod {
     public static final String ID = "veilchapter";
     public static final String NAME = "Veil Chapter - Psychological Horror";
-    public static final String VERSION = "0.2.8-cinematic-gate";
+    public static final String VERSION = "0.2.9-stalking-test";
     public static final int CLEARING_DIM = 713;
     public static Logger LOG;
     public static net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper NETWORK;
@@ -37,6 +38,8 @@ public final class VeilMod {
                 net.minecraftforge.fml.relauncher.Side.CLIENT);
         EntityRegistry.registerModEntity(new ResourceLocation(ID, "watcher"), EntityWatcher.class,
                 "watcher", 0, this, 96, 3, false);
+        EntityRegistry.registerModEntity(new ResourceLocation(ID, "peeker"), EntityPeeker.class,
+                "peeker", 1, this, 80, 5, false);
         if (!DimensionManager.isDimensionRegistered(CLEARING_DIM)) {
             DimensionType clearing = DimensionType.register("Veil Clearing", "_veil", CLEARING_DIM,
                     ClearingProvider.class, false);
