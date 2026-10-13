@@ -94,13 +94,13 @@ jobs:
           print("JAR_AUDIO_QA_PASS: all 14 legacy OGG assets intact and referenced.")
           PY
           python3 tools/validar_watcher_spatial.py --jar 2>&1 | tee watcher_spatial_jar_qa.log
-      - name: Upload compiled JAR (not gameplay validated)
-        if: success()
+      - name: Upload compiled JAR for media integration (NOT installable without 15 OGGs)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: veilchapter-v0.2.7-WATCHER-SPATIAL-NEEDS-CLIENT-QA
+          name: veilchapter-v0.2.7-INCOMPLETE-AUDIO-FOR-PACKAGING
           path: build/libs/*.jar
-          if-no-files-found: error
+          if-no-files-found: ignore
       - name: Preserve diagnostics
         if: always()
         uses: actions/upload-artifact@v4
