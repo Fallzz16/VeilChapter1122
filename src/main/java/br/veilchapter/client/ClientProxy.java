@@ -21,7 +21,7 @@ public final class ClientProxy extends CommonProxy {
         // Packet registration happens during VeilMod.preInit on both sides.
         RenderingRegistry.registerEntityRenderingHandler(EntityWatcher.class, new IRenderFactory<EntityWatcher>() {
             @Override public net.minecraft.client.renderer.entity.Render<? super EntityWatcher> createRenderFor(RenderManager m) {
-                return new RenderLiving<EntityWatcher>(m, new ModelPlayer(0.0F, false), 0.0F) {
+                return new RenderLiving<EntityWatcher>(m, new ModelWatcher(), 0.0F) {
                     @Override protected ResourceLocation getEntityTexture(EntityWatcher entity) {
                         return new ResourceLocation("veilchapter", "textures/entity/watcher.png");
                     }

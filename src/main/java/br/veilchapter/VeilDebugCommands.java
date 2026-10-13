@@ -14,7 +14,7 @@ import net.minecraft.util.text.TextComponentString;
 /** Cheat/OP-only diagnostic features; no debug items or blocks injected into gameplay. */
 public final class VeilDebugCommands extends CommandBase {
     @Override public String getName() {return "veiltest";}
-    @Override public String getUsage(ICommandSender s) {return "/veiltest day <2..7> | psst | audio <psst|hey|laugh|breath> <left|right|front|behind> | tenant";}
+    @Override public String getUsage(ICommandSender s) {return "/veiltest day <2..7> | psst | audio <psst|hey|laugh|breath> <left|right|front|behind> | tenant | watcher | peeker";}
     @Override public int getRequiredPermissionLevel() {return 2;}
     @Override public void execute(MinecraftServer server,ICommandSender sender,String[] args) throws CommandException {
         EntityPlayerMP p=getCommandSenderAsPlayer(sender);
@@ -41,6 +41,34 @@ public final class VeilDebugCommands extends CommandBase {
                 throw new CommandException("Direcoes: left, right, front, behind");
             testDirectional(p,sound,args[2]);
             sender.sendMessage(new TextComponentString("[Veil] Som: "+args[1]+" | direcao: "+args[2]));return;
+        }
+        if(args.length==1 && (args[0].equals("watcher") || args[0].equals("peeker"))) {
+            net.minecraft.world.WorldServer w=(net.minecraft.world.WorldServer)p.world;
+            net.minecraft.util.math.Vec3d look=p.getLookVec();
+            double mag=Math.sqrt(look.x*look.x+look.z*look.z);
+            if(mag<.05)throw new CommandException("Olhe para a frente, nao para cima/baixo.");
+            int distance=args[0].equals("watcher")?19:13;
+            net.minecraft.util.math.BlockPos hint=p.getPosition().add(
+                look.x/mag*distance,0,look.z/mag*distance);
+            if(!w.isBlockLoaded(hint,false))
+                throw new CommandException("Chunk de destino nao carregado.");
+            net.minecraft.util.math.BlockPos at=w.getHeight(hint);
+            if(!w.isAirBlock(at) || !w.isAirBlock(at.up()) ||
+                    !w.getBlockState(at.down()).isFullCube())
+                throw new CommandException("Chao invalido neste ponto.");
+            if(args[0].equals("watcher")) {
+                br.veilchapter.entity.EntityWatcher e=new br.veilchapter.entity.EntityWatcher(w);
+                e.setPosition(at.getX()+.5,at.getY(),at.getZ()+.5);
+                if(!w.getCollisionBoxes(e,e.getEntityBoundingBox()).isEmpty() || !w.spawnEntity(e))
+                    throw new CommandException("Sem espaco para Watcher.");
+            }else {
+                br.veilchapter.entity.EntityPeeker e=new br.veilchapter.entity.EntityPeeker(w);
+                e.setPosition(at.getX()+.5,at.getY()+.08,at.getZ()+.5);
+                e.setEyesOnly(false);
+                if(!w.spawnEntity(e))throw new CommandException("Nao foi possivel criar Peeker.");
+            }
+            sender.sendMessage(new TextComponentString("[Veil] "+args[0]+" criado a "+distance+" blocos."));
+            return;
         }
         if(args.length==1 && args[0].equals("tenant")) {
             if(!br.veilchapter.GameEvents.TEST_TENANT_AVAILABLE)

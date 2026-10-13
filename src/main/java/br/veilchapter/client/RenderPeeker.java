@@ -19,7 +19,11 @@ public final class RenderPeeker extends Render<EntityPeeker> {
     @Override public void doRender(EntityPeeker entity,double x,double y,double z,
                                    float entityYaw,float partialTicks) {
         GlStateManager.pushMatrix();
-        GlStateManager.translate(x,y,z);
+        // A short physical emergence, with a subtle retreat near the end.
+        float age=entity.ticksExisted+partialTicks;
+        float emerge=Math.min(1F,age/9F);
+        float retreat=Math.min(1F,Math.max(0F,age-48F)/12F);
+        GlStateManager.translate(x,y-.22F*(1F-emerge)-.22F*retreat,z);
         // Keep the face toward the observer; terrain depth test hides the lower half.
         GlStateManager.rotate(180F-renderManager.playerViewY,0F,1F,0F);
         GlStateManager.disableTexture2D();
