@@ -7,7 +7,7 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-/** All clips are mono OGG, spatialized by vanilla OpenAL at playSound position. */
+/** Mono OGG events. Minecraft/OpenAL determines binaural left/right positioning. */
 @Mod.EventBusSubscriber(modid = VeilMod.ID)
 public final class VeilSounds {
     private static SoundEvent register(String id) {
@@ -18,12 +18,21 @@ public final class VeilSounds {
     public static final SoundEvent LAUGH = register("laugh");
     public static final SoundEvent BREATH = register("breath");
 
-    public static final SoundEvent WATCHER_VOICE_01 = register("watcher_voice_01");
-    public static final SoundEvent WATCHER_VOICE_02 = register("watcher_voice_02");
-    public static final SoundEvent WATCHER_VOICE_03 = register("watcher_voice_03");
-    public static final SoundEvent WATCHER_VOICE_04 = register("watcher_voice_04");
-
+    public static final SoundEvent[] WATCHER_OPEN = new SoundEvent[5];
+    public static final SoundEvent[] WATCHER_MUFFLED = new SoundEvent[5];
+    public static final SoundEvent[] WATCHER_INDOOR = new SoundEvent[5];
+    static {
+        for (int i = 0; i < 5; i++) {
+            String stem = "watcher_voice_" + String.format(java.util.Locale.ROOT, "%02d", i + 1);
+            WATCHER_OPEN[i] = register(stem + "_open");
+            WATCHER_MUFFLED[i] = register(stem + "_muffled");
+            WATCHER_INDOOR[i] = register(stem + "_indoor");
+        }
+    }
     @SubscribeEvent public static void sounds(RegistryEvent.Register<SoundEvent> event) {
-        event.getRegistry().registerAll(PSST, HEY, LAUGH, BREATH, WATCHER_VOICE_01, WATCHER_VOICE_02, WATCHER_VOICE_03, WATCHER_VOICE_04);
+        event.getRegistry().registerAll(PSST, HEY, LAUGH, BREATH);
+        event.getRegistry().registerAll(WATCHER_OPEN);
+        event.getRegistry().registerAll(WATCHER_MUFFLED);
+        event.getRegistry().registerAll(WATCHER_INDOOR);
     }
 }
