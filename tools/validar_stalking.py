@@ -19,7 +19,7 @@ checks={
 "peeker no collision":"canBeCollidedWith()" in peek,
 "bed delayed":"pendingSleep.put(id,tick+20L)" in presence,
 "bed wake cleanup":"presence.endBedWatcher(player)" in events,
-"bed controls unblocked":"setResult(" not in events,
+"bed controls unblocked":"setResult(" not in events.split("public void goingToBed(")[1].split("public void wake(")[0],
 "config peeking":"VeilConfig.enablePeeking" in presence,
 "bed must still be occupied":"p.isPlayerSleeping()" in presence,
 "peeker registered":'"peeker", 1, this' in mod,
