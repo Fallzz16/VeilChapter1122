@@ -1,0 +1,12 @@
+[
+  {
+    "modid": "veilchapter",
+    "name": "Veil Chapter - Psychological Horror",
+    "description": "Primeiro capitulo experimental de terror psicologico progressivo.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "authorList": ["Veil Chapter"],
+    "credits": "Original survival horror concept",
+    "dependencies": []
+  }
+]
